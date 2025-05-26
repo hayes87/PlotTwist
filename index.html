@@ -26,9 +26,7 @@
                         <label for="team2">Equipe 2:</label>
                         <input type="text" id="team2" placeholder="Nome da Equipe 2">
                     </div>
-                </div>
-
-                <div class="difficulty-setup">
+                </div>                <div class="difficulty-setup">
                     <h2>Dificuldade</h2>
                     <div class="difficulty-options">
                         <button class="difficulty-btn" data-difficulty="easy">Fácil</button>
@@ -36,11 +34,9 @@
                         <button class="difficulty-btn" data-difficulty="hard">Difícil</button>
                         <button class="difficulty-btn" data-difficulty="cult">Cult</button>
                         <button class="difficulty-btn" data-difficulty="random">Random</button>
-                        <button class="difficulty-btn" data-difficulty="teamChoice">Escolha da Equipe</button>
                     </div>
-                    <br>
                     <div class="difficulty-description" id="difficulty-description">
-                         
+                        Selecione uma dificuldade para ver a descrição
                     </div>
                 </div>
                   <div class="timer-setup">
@@ -70,7 +66,7 @@
                         <span class="btn-text">Limpar Histórico de Cartas</span>
                         <div class="progress-bar"></div>
                     </button>
-                    <!-- <button id="debug-game-btn" class="secondary-btn">Debug Game</button>-->
+                    <button id="debug-game-btn" class="secondary-btn">Debug Game</button>
                     <button id="toggle-theme-btn" class="icon-btn"><i class="fas fa-moon"></i></button>
                 </div>
                 <div class="history-section">
@@ -83,9 +79,7 @@
         </div>
 
         <!-- Tela de Jogo -->
-        <div id="game-screen" class="screen hidden">
-            <div class="game-header">
-                <div class="game-info">
+        <div id="game-screen" class="screen hidden">            <div class="game-header">                <div class="game-info">
                     <div class="round-info">Rodada: <span id="current-round">1</span>/<span id="total-rounds-display">10</span></div>
                     <div id="timer-display" class="timer-display hidden">
                         <i class="fas fa-clock"></i> <span id="timer-countdown">00:00</span>
@@ -102,16 +96,6 @@
                         <div class="team-name" id="team2-name">Equipe 2</div>
                         <div class="team-points" id="team2-points">0</div>
                     </div>
-                </div>
-            </div>
-
-            <div id="team-difficulty-choice-container" class="hidden" style="text-align: center; margin-bottom: 20px;">
-                <h3><span id="current-team-for-difficulty-choice">Nome da Equipe</span>, escolha a dificuldade para esta rodada:</h3>
-                <div class="difficulty-options-ingame" style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="easy" data-points="10">Fácil (10 pts)</button>
-                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="medium" data-points="20">Médio (20 pts)</button>
-                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="hard" data-points="30">Difícil (30 pts)</button>
-                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="cult" data-points="50">Cult (50 pts)</button>
                 </div>
             </div>
 
