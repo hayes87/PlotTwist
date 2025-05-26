@@ -13,9 +13,10 @@ class GameState {    constructor() {
         this.timeLimit = 0; // 0 = sem limite, 60 = 1 min, etc.
         this.timeRemaining = 0;
         this.usedCards = [];
-        this.gameHistory = [];
-        this.currentRoundDifficulty = 'medium'; // Dificuldade específica da rodada atual (para modo escolha livre)
+        this.gameHistory = [];        this.currentRoundDifficulty = 'medium'; // Dificuldade específica da rodada atual (para modo escolha livre)
         this.currentRoundMultiplier = 1; // Multiplicador de pontos da rodada atual
+        this.isProcessingAnswer = false; // Previne múltiplas submissões rápidas
+        this.isRevealingClue = false; // Previne múltiplos cliques rápidos no botão revelar pista
     }    // Salva o estado do jogo no localStorage
     save() {
         localStorage.setItem('perfilGameState', JSON.stringify({
@@ -420,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "hard": "Filmes e séries mais desafiadores e menos mainstream",
         "cult": "Filmes e séries cult, alternativos e menos conhecidos",
         "random": "Mistura aleatória de todos os níveis de dificuldade",
-        "escolhalivre": "Cada equipe escolhe a dificuldade da sua pergunta. Fácil: 1 ponto, Médio: 2 pontos, Difícil: 3 pontos, Cult: 4 pontos"
+        "escolhalivre": "Ganhe um bonus no placar de acordo com a dificuldade: Fácil: 50%, Médio: 75%, Difícil: 100%, Master: 125%"
     };
     
     const difficultyDescription = document.getElementById('difficulty-description');
@@ -635,6 +636,10 @@ function newRound() {
 }
 
 function startNewRoundWithCard() {
+    // Reset processing flags for the new round
+    gameState.isProcessingAnswer = false;
+    gameState.isRevealingClue = false;
+    
     // Seleciona uma nova carta
     gameState.currentCard = gameState.getNewCard();
     gameState.revealedClues = 0;
@@ -657,9 +662,13 @@ function startNewRoundWithCard() {
 }
 
 function revealClue() {
-    if (!gameState.currentCard || gameState.revealedClues >= gameState.currentCard.clues.length) {
+    // Prevent multiple rapid clicks
+    if (gameState.isRevealingClue || !gameState.currentCard || gameState.revealedClues >= gameState.currentCard.clues.length) {
         return;
     }
+    
+    // Mark that we're revealing a clue
+    gameState.isRevealingClue = true;
     
     // Revela a próxima pista
     const cluesContainer = document.getElementById('clues-container');
@@ -686,16 +695,30 @@ function revealClue() {
     if (gameState.revealedClues >= gameState.currentCard.clues.length) {
         document.getElementById('reveal-clue-btn').disabled = true;
     }
+    
+    // Reset the revealing flag after a brief delay to prevent rapid clicking
+    setTimeout(() => {
+        gameState.isRevealingClue = false;
+    }, 500); // 500ms delay between clue reveals
 }
 
 function submitAnswer() {
+    // Prevent multiple rapid submissions
+    if (gameState.isProcessingAnswer) {
+        return;
+    }
+    
     const answerInput = document.getElementById('answer-input');
     const answer = answerInput.value.trim();
     
     if (!answer) {
         showNotification('Digite uma resposta!', 'error');
         return;
-    }      if (gameState.checkAnswer(answer)) {
+    }
+    
+    // Mark that we're processing an answer
+    gameState.isProcessingAnswer = true;
+    if (gameState.checkAnswer(answer)) {
         // Resposta correta
         let basePoints = Math.max(11 - gameState.revealedClues, 1);
         
@@ -744,20 +767,33 @@ function submitAnswer() {
                 document.getElementById('game-screen').classList.add('hidden');
                 advanceGame();
             }, 300);
-        }, 4700);   
-    } else {
+        }, 4700);     } else {
         // Resposta incorreta
         showNotification('Resposta incorreta!', 'error', true);
         answerInput.value = '';
+        // Reset the processing flag to allow new attempts
+        gameState.isProcessingAnswer = false;
     }
 }
 
 function showAnswer() {
+    // Prevent multiple rapid clicks
+    if (gameState.isProcessingAnswer) {
+        return;
+    }
+    
+    // Mark that we're processing to prevent multiple clicks
+    gameState.isProcessingAnswer = true;
+    
     const answer = gameState.currentCard ? gameState.currentCard.answer : '';
     
     // Notificação customizada para a resposta que dura mais tempo
     const cardContainer = document.querySelector('.card-container');
-    if (!cardContainer) return; // Se não estiver na tela do jogo
+    if (!cardContainer) {
+        // Reset flag if we can't show notification
+        gameState.isProcessingAnswer = false;
+        return;
+    }
     
     // Remove notificações anteriores
     const oldNotifications = cardContainer.querySelectorAll('.card-notification');
@@ -788,6 +824,10 @@ function showAnswer() {
 }
 
 function advanceGame() {
+    // Reset processing flags for the next round
+    gameState.isProcessingAnswer = false;
+    gameState.isRevealingClue = false;
+    
     // Certifique-se de que a tela do jogo esteja oculta
     document.getElementById('game-screen').classList.add('hidden');
     

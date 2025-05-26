@@ -1,24 +1,16 @@
-# Perf1. **Configuração Inicial**: Digite os nomes das duas equipes e escolha entre as dificuldades (Fácil, Médio, Difícil, Cult, Random, Escolha Livre)
+# Perfil - Jogo de Séries & Filmes
+
+Um jogo interativo baseado no formato de TV "Perfil", focado em filmes, séries, pessoas e objetos relacionados ao cinema e televisão.
+
+## 🎮 Como Jogar
+
+1. **Configuração Inicial**: Digite os nomes das duas equipes e escolha entre as dificuldades (Fácil, Médio, Difícil, Cult, Random, Escolha Livre)
    - **Modo Random**: Sorteia uma distribuição de questões: 20% fáceis, 50% médias, 25% difíceis e 5% cult. Garante que cada time receba quantidade de questões justas.
    - **Modo Escolha Livre**: ✅ IMPLEMENTADO! Cada equipe escolhe a dificuldade da sua pergunta no início de cada rodada:
      - Fácil: 1 ponto por pista (máximo 10 pontos)
      - Médio: 2 pontos por pista (máximo 20 pontos) 
      - Difícil: 3 pontos por pista (máximo 30 pontos)
      - Cult: 4 pontos por pista (máximo 40 pontos)
-     - Cult: 4 pontos por pista (máximo 40 pontos) - Jogo de Séries & Filmes
-
-Um jogo interativo baseado no formato de TV "Perfil", focado em filmes, séries, pessoas e objetos relacionados ao cinema e televisão.
-
-## 🎮 Como Jogar
-
-1. **Configuração Inicial**: Digite os nomes das duas equipes e escolha entrea as dificuldades (Facil, Medio, Dificil, Cult, Random)
-   - Modo random sorteia uma numero de questoes 20% de questoes faceis, 50 de questoes medias, 25% dificeis  e 5% cult. Tenha certeza q cada time receba quantidade de questoes justas.
-
-2. **Gameplay**: 
-   - Clique em "Revelar Pista" para ver uma nova pista
-   - Digite sua resposta no campo de texto
-   - Pressione Enter ou clique em "Enviar Palpite"
-   - Pontuação: 10 pontos (1ª pista) até 1 ponto (10ª pista)
 3. **Final**: O jogo dura 10 rodadas, ganha quem tiver mais pontos
 
 ## ✨ Funcionalidades
@@ -100,6 +92,14 @@ perfil/
 - ✅ Interface responsiva aprimorada
 - ✅ Sistema de notificações
 - ✅ Prevenção de cartas repetidas
+- ✅ **Modo Escolha Livre**: Sistema completo com multiplicadores de pontuação
+- ✅ **Proteção Anti-Exploit**: Previne pontuação infinita por cliques rápidos
+
+### 🔒 Melhorias de Segurança
+- **Proteção contra Cliques Rápidos**: Flags `isProcessingAnswer` e `isRevealingClue` previnem múltiplas submissões
+- **Debounce no Revelar Pistas**: Delay de 500ms entre revelações de pistas
+- **Reset Automático de Flags**: Flags são resetadas automaticamente ao avançar de rodada
+- **Validação de Estado**: Verificações adicionais antes de processar ações
 
 ### 🔄 Funcionalidades Técnicas
 - **LocalStorage**: Para salvar estado do jogo e preferências
