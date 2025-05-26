@@ -34,6 +34,7 @@
                         <button class="difficulty-btn" data-difficulty="hard">Difícil</button>
                         <button class="difficulty-btn" data-difficulty="cult">Cult</button>
                         <button class="difficulty-btn" data-difficulty="random">Random</button>
+                        <button class="difficulty-btn" data-difficulty="escolhalivre">Escolha Livre</button>
                     </div>
                     <div class="difficulty-description" id="difficulty-description">
                         Selecione uma dificuldade para ver a descrição
@@ -148,14 +149,38 @@
                     <button id="return-menu-btn" class="secondary-btn">Voltar ao Menu</button>
                 </div>
             </div>
-        </div>
-
-        <!-- Tela de Transição de Equipe -->
+        </div>        <!-- Tela de Transição de Equipe -->
         <div id="team-transition-screen" class="screen hidden">
             <div class="transition-container">
                 <h2>Vez da Equipe</h2>
                 <div id="transition-team-name" class="transition-team">Nome da Equipe</div>
                 <div id="transition-countdown" class="transition-countdown">3</div>
+            </div>
+        </div>
+
+        <!-- Tela de Seleção de Dificuldade (Modo Escolha Livre) -->
+        <div id="difficulty-selection-screen" class="screen hidden">
+            <div class="difficulty-selection-container">
+                <h2>Escolha a Dificuldade</h2>
+                <div id="difficulty-selection-team-name" class="selection-team">Nome da Equipe</div>
+                <div class="difficulty-selection-options">
+                    <button class="difficulty-selection-btn" data-difficulty="easy" data-points="1">
+                        <div class="difficulty-name">Fácil</div>
+                        <div class="difficulty-points">1 ponto</div>
+                    </button>
+                    <button class="difficulty-selection-btn" data-difficulty="medium" data-points="2">
+                        <div class="difficulty-name">Médio</div>
+                        <div class="difficulty-points">2 pontos</div>
+                    </button>
+                    <button class="difficulty-selection-btn" data-difficulty="hard" data-points="3">
+                        <div class="difficulty-name">Difícil</div>
+                        <div class="difficulty-points">3 pontos</div>
+                    </button>
+                    <button class="difficulty-selection-btn" data-difficulty="cult" data-points="4">
+                        <div class="difficulty-name">Cult</div>
+                        <div class="difficulty-points">4 pontos</div>
+                    </button>
+                </div>
             </div>
         </div>
 

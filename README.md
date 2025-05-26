@@ -1,4 +1,11 @@
-# Perfil - Jogo de Séries & Filmes
+# Perf1. **Configuração Inicial**: Digite os nomes das duas equipes e escolha entre as dificuldades (Fácil, Médio, Difícil, Cult, Random, Escolha Livre)
+   - **Modo Random**: Sorteia uma distribuição de questões: 20% fáceis, 50% médias, 25% difíceis e 5% cult. Garante que cada time receba quantidade de questões justas.
+   - **Modo Escolha Livre**: ✅ IMPLEMENTADO! Cada equipe escolhe a dificuldade da sua pergunta no início de cada rodada:
+     - Fácil: 1 ponto por pista (máximo 10 pontos)
+     - Médio: 2 pontos por pista (máximo 20 pontos) 
+     - Difícil: 3 pontos por pista (máximo 30 pontos)
+     - Cult: 4 pontos por pista (máximo 40 pontos)
+     - Cult: 4 pontos por pista (máximo 40 pontos) - Jogo de Séries & Filmes
 
 Um jogo interativo baseado no formato de TV "Perfil", focado em filmes, séries, pessoas e objetos relacionados ao cinema e televisão.
 

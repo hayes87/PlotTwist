@@ -492,198 +492,100 @@ input[type="text"]:focus {
     animation: pulse 1s infinite;
 }
 
-@keyframes blinkCategory {
-    0% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(1.05);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes blinkRevealButton {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 4px 12px rgba(58, 134, 255, 0.25);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 6px 16px rgba(58, 134, 255, 0.5);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 4px 12px rgba(58, 134, 255, 0.25);
-    }
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(58, 134, 255, 0.7);
-    }
-    70% {
-        transform: scale(1.05);
-        box-shadow: 0 0 0 10px rgba(58, 134, 255, 0);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(58, 134, 255, 0);
-    }
-}
-
-/* Sistema de notificação */
-.notification-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-}
-
-/* Notificação do jogo que sobrepõe o card */
-.card-notification {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+/* Estilos da tela de seleção de dificuldade (Modo Escolha Livre) */
+.difficulty-selection-container {
     background: var(--card-bg);
-    border-radius: 16px;
+    border-radius: 20px;
     box-shadow: var(--card-shadow);
-    z-index: 10;
+    padding: 3rem;
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+}
+
+.difficulty-selection-container h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.selection-team {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: var(--accent-color);
+}
+
+.difficulty-selection-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.difficulty-selection-btn {
+    background: var(--btn-secondary-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 120px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
-    text-align: center;
-    opacity: 1;
-    transition: opacity 0.3s ease;
 }
 
-.card-notification .notification-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+.difficulty-selection-btn:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(58, 134, 255, 0.3);
 }
 
-.card-notification .notification-message {
-    font-size: 1.5rem;
+.difficulty-selection-btn:hover .difficulty-name,
+.difficulty-selection-btn:hover .difficulty-points {
+    color: white;
+}
+
+.difficulty-name {
+    font-size: 1.2rem;
     font-weight: 600;
-}
-
-.card-notification.success .notification-icon {
-    color: var(--success-color);
-}
-
-.card-notification.error .notification-icon {
-    color: var(--error-color);
-}
-
-.card-notification.info .notification-icon {
-    color: var(--accent-color);
-}
-
-.notification {
-    background: var(--notification-bg);
-    border-left: 4px solid var(--accent-color);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    min-width: 300px;
-    max-width: 400px;
-    transform: translateX(120%);
-    animation: slideIn 0.3s forwards, fadeOut 0.3s 2.7s forwards;
-}
-
-.notification.success {
-    border-left-color: var(--success-color);
-}
-
-.notification.error {
-    border-left-color: var(--error-color);
-}
-
-.notification-icon {
-    margin-right: 1rem;
-    font-size: 1.5rem;
-}
-
-.notification-message {
     color: var(--text-primary);
-    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
 }
 
-/* História de partidas */
-.history-section {
-    margin-top: 1.5rem;
-    width: 100%;
-}
-
-.history-container {
-    max-height: 200px;
-    overflow-y: auto;
-    background: var(--clue-bg);
-    border-radius: 8px;
-    padding: 0.75rem;
-}
-
-.history-item {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.9rem;
+.difficulty-points {
+    font-size: 1rem;
     color: var(--text-secondary);
+    font-weight: 500;
 }
 
-.history-item:last-child {
-    border-bottom: none;
+/* Cores específicas para cada dificuldade */
+.difficulty-selection-btn[data-difficulty="easy"]:hover {
+    background: #4caf50;
+    border-color: #4caf50;
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
 }
 
-/* Estatísticas de cartas */
-.cards-stats {
-    margin-top: 1.5rem;
-    width: 100%;
+.difficulty-selection-btn[data-difficulty="medium"]:hover {
+    background: #ff9800;
+    border-color: #ff9800;
+    box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
 }
 
-.stats-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 1rem;
-    background: var(--clue-bg);
-    border-radius: 8px;
-    padding: 0.75rem;
+.difficulty-selection-btn[data-difficulty="hard"]:hover {
+    background: #f44336;
+    border-color: #f44336;
+    box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
 }
 
-.stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    min-width: 100px;
-    padding: 0.5rem;
-    border-radius: 6px;
-    background: var(--card-bg);
-    box-shadow: var(--card-shadow);
-}
-
-.stat-label {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.25rem;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--accent-color);
+.difficulty-selection-btn[data-difficulty="cult"]:hover {
+    background: #9c27b0;
+    border-color: #9c27b0;
+    box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
 }
 
 /* Animações */
