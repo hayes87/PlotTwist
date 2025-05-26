@@ -665,31 +665,37 @@ input[type="text"]:focus {
     background: var(--notification-bg);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem 2rem;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
     z-index: 10;
     opacity: 1;
-    animation: popIn 0.3s ease;
+    animation: flashyPopIn 0.6s ease-out;
     pointer-events: auto;
-    min-width: 250px;
-    max-width: 400px;
+    min-width: 280px;
+    max-width: 450px;
 }
 
 .card-notification.success {
-    border-left: 4px solid var(--success-color);
+    border-left: 6px solid var(--success-color);
+    background: linear-gradient(135deg, var(--notification-bg), rgba(76, 175, 80, 0.1));
+    animation: flashyPopIn 0.6s ease-out, successPulse 2s ease-in-out infinite;
 }
 
 .card-notification.error {
-    border-left: 4px solid var(--error-color);
+    border-left: 6px solid var(--error-color);
+    background: linear-gradient(135deg, var(--notification-bg), rgba(244, 67, 54, 0.1));
+    animation: flashyPopIn 0.6s ease-out, errorShake 0.5s ease-in-out;
 }
 
 .card-notification.info {
-    border-left: 4px solid var(--accent-color);
+    border-left: 6px solid var(--accent-color);
+    background: linear-gradient(135deg, var(--notification-bg), rgba(58, 134, 255, 0.1));
+    animation: flashyPopIn 0.6s ease-out, infoPulse 2s ease-in-out infinite;
 }
 
 .card-notification .notification-icon {
@@ -697,27 +703,32 @@ input[type="text"]:focus {
 }
 
 .card-notification .notification-icon i {
-    font-size: 1.5rem;
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .card-notification.success .notification-icon i {
     color: var(--success-color);
+    animation: iconBounce 1s ease-in-out infinite;
 }
 
 .card-notification.error .notification-icon i {
     color: var(--error-color);
+    animation: iconShake 0.5s ease-in-out;
 }
 
 .card-notification.info .notification-icon i {
     color: var(--accent-color);
+    animation: iconSpin 2s linear infinite;
 }
 
 .card-notification .notification-message {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
-    font-size: 1rem;
+    font-size: 1.1rem;
     line-height: 1.4;
     text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Animações */
@@ -745,14 +756,17 @@ input[type="text"]:focus {
 /* Confetti animation styles */
 .confetti {
     position: fixed;
+    top: 0;
+    left: 0;
     z-index: 9999;
     pointer-events: none;
     will-change: transform;
+    transform-origin: center;
 }
 
 @keyframes confetti {
     0% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateY(-10vh) rotate(0deg);
         opacity: 1;
     }
     100% {
@@ -770,6 +784,65 @@ input[type="text"]:focus {
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
     }
+}
+
+/* Enhanced animations for card notifications */
+@keyframes flashyPopIn {
+    0% {
+        transform: translate(-50%, -50%) scale(0.3) rotate(-10deg);
+        opacity: 0;
+        filter: brightness(2);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+        opacity: 0.8;
+        filter: brightness(1.5);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 1;
+        filter: brightness(1);
+    }
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(76, 175, 80, 0.3);
+    }
+    50% {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(76, 175, 80, 0.6);
+    }
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+    25% { transform: translate(-50%, -50%) translateX(-5px); }
+    75% { transform: translate(-50%, -50%) translateX(5px); }
+}
+
+@keyframes infoPulse {
+    0%, 100% {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(58, 134, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(58, 134, 255, 0.6);
+    }
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-3px) scale(1.1); }
+}
+
+@keyframes iconShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+@keyframes iconSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* Responsividade */

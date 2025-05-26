@@ -163,3 +163,29 @@ Para adicionar novas cartas, edite `database.js`:
 ---
 
 **Desenvolvido para jogar em família, entre amigos ou como um quiz interativo sobre cinema e televisão!** 🎬📺
+
+## 📱 Sistema de Notificações Aprimorado
+
+O jogo agora possui um sistema de notificações visualmente aprimorado com diferentes tipos de feedback:
+
+### 🎨 Notificações de Card (Durante o Jogo)
+- **Animação de Entrada Dramática**: Nova animação `flashyPopIn` com rotação e escala
+- **Bordas e Sombras Proeminentes**: Bordas mais espessas e sombras múltiplas para destaque
+- **Fundos com Gradiente**: Cada tipo de notificação tem sua própria cor de fundo
+- **Ícones Animados**: 
+  - ✅ Sucesso: Ícone com bounce contínuo
+  - ❌ Erro: Ícone com shake effect
+  - ℹ️ Info: Ícone com rotação contínua
+- **Efeitos de Pulso**: Notificações de sucesso e info têm animação de pulso na borda
+
+### 🎊 Confetti Aprimorado
+- **Posicionamento Tela Cheia**: Confetti agora ocupa toda a viewport
+- **Animação Suave**: Partículas começam fora da tela e caem naturalmente
+- **Formas Variadas**: Círculos, quadrados e triângulos coloridos
+- **Performance Otimizada**: Remoção automática das partículas após animação
+
+### 🧪 Arquivo de Teste
+- **`test-notifications.html`**: Página dedicada para testar todas as melhorias visuais
+- Permite alternar entre temas claro/escuro
+- Botões para testar cada tipo de notificação
+- Demonstração do confetti em tela cheia
