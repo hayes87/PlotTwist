@@ -1,0 +1,1330 @@
+// Classes principais
+class GameState {
+    constructor() {
+        this.team1 = '';
+        this.team2 = '';
+        this.team1Points = 0;
+        this.team2Points = 0;
+        this.currentRound = 1;
+        this.totalRounds = 10;
+        this.activeTeam = 1; // 1 ou 2
+        this.currentCard = null;
+        this.revealedClues = 0;
+        this.difficulty = 'medium'; // 'easy', 'medium', 'hard', 'cult', 'random', 'teamChoice'
+        this.timeLimit = 0; // 0 = sem limite, 60 = 1 min, etc.
+        this.timeRemaining = 0;
+        this.usedCards = [];
+        this.gameHistory = [];
+    }    // Salva o estado do jogo no localStorage
+    save() {
+        localStorage.setItem('perfilGameState', JSON.stringify({
+            team1: this.team1,
+            team2: this.team2,
+            team1Points: this.team1Points,
+            team2Points: this.team2Points,
+            currentRound: this.currentRound,
+            activeTeam: this.activeTeam,
+            currentCard: this.currentCard,
+            revealedClues: this.revealedClues,
+            difficulty: this.difficulty,
+            timeLimit: this.timeLimit,
+            timeRemaining: this.timeRemaining,
+            usedCards: this.usedCards
+        }));
+        
+        showNotification('Jogo salvo com sucesso!', 'success');
+    }    // Carrega o estado do jogo do localStorage
+    load() {
+        const savedState = localStorage.getItem('perfilGameState');
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            this.team1 = state.team1;
+            this.team2 = state.team2;
+            this.team1Points = state.team1Points;
+            this.team2Points = state.team2Points;
+            this.currentRound = state.currentRound;
+            this.activeTeam = state.activeTeam;
+            this.currentCard = state.currentCard;
+            this.revealedClues = state.revealedClues;
+            this.difficulty = state.difficulty;
+            this.timeLimit = state.timeLimit || 0;
+            this.timeRemaining = state.timeRemaining || 0;
+            this.usedCards = state.usedCards || [];
+            
+            showNotification('Jogo carregado com sucesso!', 'success');
+            return true;
+        }
+        return false;
+    }
+
+    // Salva o resultado do jogo no histórico
+    saveToHistory() {
+        const gameResult = {
+            date: new Date().toLocaleDateString(),
+            team1: this.team1,
+            team2: this.team2,
+            team1Points: this.team1Points,
+            team2Points: this.team2Points,
+            winner: this.team1Points > this.team2Points ? this.team1 : 
+                   this.team2Points > this.team1Points ? this.team2 : 'Empate'
+        };
+
+        let history = this.loadHistory();
+        history.unshift(gameResult); // Adiciona no início
+        
+        // Limita a 10 jogos no histórico
+        if (history.length > 10) {
+            history = history.slice(0, 10);
+        }
+        
+        localStorage.setItem('perfilGameHistory', JSON.stringify(history));
+        this.gameHistory = history;
+    }
+
+    // Carrega o histórico de jogos
+    loadHistory() {
+        const savedHistory = localStorage.getItem('perfilGameHistory');
+        if (savedHistory) {
+            this.gameHistory = JSON.parse(savedHistory);
+            return this.gameHistory;
+        }
+        return [];
+    }    // Limpa o histórico de cartas usadas
+    resetUsedCards() {
+        this.usedCards = [];
+        localStorage.setItem('perfilUsedCards', JSON.stringify(this.usedCards));
+        showNotification('Histórico de cartas limpo!', 'success');
+        updateCardStats(); // Atualiza as estatísticas após limpar
+    }
+
+    // Seleciona uma nova carta
+    getNewCard() {
+        let availableCards = [];
+        let difficultyForThisCard = this.difficulty;
+
+        if (this.difficulty === 'teamChoice') {
+            // This will be handled by the team's in-game selection
+            // For now, we can default to medium or handle it in the round setup
+            // This part might need adjustment based on when the team makes their choice
+            difficultyForThisCard = 'medium'; // Placeholder, will be overridden
+        }
+        
+        // Seleciona o banco de dados apropriado baseado na dificuldade
+        if (difficultyForThisCard === 'easy') {
+            availableCards = databaseEasy.filter(card => !this.usedCards.includes(card.answer));
+        } else if (difficultyForThisCard === 'medium') {
+            availableCards = databaseMedium.filter(card => !this.usedCards.includes(card.answer));
+        } else if (difficultyForThisCard === 'hard') {
+            availableCards = databaseHard.filter(card => !this.usedCards.includes(card.answer));
+        } else if (difficultyForThisCard === 'cult') {
+            availableCards = databaseCult.filter(card => !this.usedCards.includes(card.answer));
+        } else if (difficultyForThisCard === 'random') {
+            // Modo random: 20% fácil, 50% médio, 25% difícil, 5% cult
+            const random = Math.random();
+            if (random < 0.2) {
+                availableCards = databaseEasy.filter(card => !this.usedCards.includes(card.answer));
+            } else if (random < 0.7) {
+                availableCards = databaseMedium.filter(card => !this.usedCards.includes(card.answer));
+            } else if (random < 0.95) {
+                availableCards = databaseHard.filter(card => !this.usedCards.includes(card.answer));
+            } else {
+                availableCards = databaseCult.filter(card => !this.usedCards.includes(card.answer));
+            }
+        }
+        
+        // Se não houver cartas disponíveis, use todas as cartas
+        if (availableCards.length === 0) {
+            showNotification('Todas as cartas já foram usadas. Reiniciando...', 'error');
+            this.resetUsedCards();
+            return this.getNewCard();
+        }
+        
+        // Seleciona uma carta aleatória
+        const randomIndex = Math.floor(Math.random() * availableCards.length);
+        const selectedCard = availableCards[randomIndex];
+          // Adiciona a carta à lista de usadas
+        this.usedCards.push(selectedCard.answer);
+        localStorage.setItem('perfilUsedCards', JSON.stringify(this.usedCards));
+        
+        // Se estamos na tela inicial, atualiza as estatísticas
+        if (!document.getElementById('start-screen').classList.contains('hidden')) {
+            updateCardStats();
+        }
+        
+        return selectedCard;
+    }
+
+    // Verifica se a resposta está correta
+    checkAnswer(answer) {
+        if (!this.currentCard) return false;
+        
+        // Normaliza a resposta (remove acentos, converte para minúsculas)
+        const normalizedAnswer = this.normalizeText(answer);
+        const normalizedCorrect = this.normalizeText(this.currentCard.answer);
+        
+        // Verifica a resposta principal
+        if (normalizedAnswer === normalizedCorrect) {
+            return true;
+        }
+        
+        // Verifica respostas alternativas
+        if (this.currentCard.alternatives && this.currentCard.alternatives.length > 0) {
+            for (const alt of this.currentCard.alternatives) {
+                if (this.normalizeText(alt) === normalizedAnswer) {
+                    return true;
+                }
+            }
+        }
+        
+        // Matching aproximado (Levenshtein distance <= 2 para respostas curtas)
+        if (normalizedCorrect.length <= 5 && this.levenshteinDistance(normalizedAnswer, normalizedCorrect) <= 1) {
+            return true;
+        } else if (normalizedCorrect.length > 5 && this.levenshteinDistance(normalizedAnswer, normalizedCorrect) <= 2) {
+            return true;
+        }
+        
+        // Verificação por palavras-chave (para respostas parciais)
+        const correctWords = normalizedCorrect.split(' ');
+        if (correctWords.length > 1) {
+            const answerWords = normalizedAnswer.split(' ');
+            let matchedWords = 0;
+            
+            for (const word of answerWords) {
+                if (word.length >= 4 && correctWords.includes(word)) { // Ignora palavras pequenas
+                    matchedWords++;
+                }
+            }
+            
+            // Se mais de 70% das palavras importantes correspondem
+            const threshold = correctWords.filter(w => w.length >= 4).length * 0.7;
+            if (matchedWords >= threshold && matchedWords >= 2) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // Normaliza o texto (remove acentos, converte para minúsculas)
+    normalizeText(text) {
+        return text.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // Remove acentos
+                .replace(/[^\w\s]/g, '')  // Remove pontuação
+                .trim();
+    }
+
+    // Calcula a distância de Levenshtein (para matching aproximado)
+    levenshteinDistance(a, b) {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+      
+        const matrix = [];
+      
+        // Inicializa a primeira linha e coluna da matriz
+        for (let i = 0; i <= b.length; i++) {
+            matrix[i] = [i];
+        }
+        for (let j = 0; j <= a.length; j++) {
+            matrix[0][j] = j;
+        }
+      
+        // Preenche o resto da matriz
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                const cost = a[j - 1] === b[i - 1] ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j] + 1,      // deleção
+                    matrix[i][j - 1] + 1,      // inserção
+                    matrix[i - 1][j - 1] + cost // substituição
+                );
+            }
+        }
+      
+        return matrix[b.length][a.length];
+    }
+}
+
+class ThemeManager {
+    constructor() {
+        this.currentTheme = localStorage.getItem('perfilTheme') || 'light';
+        this.applyTheme();
+    }
+    
+    // Alterna entre temas claro e escuro
+    toggleTheme() {
+        this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+        this.applyTheme();
+        return this.currentTheme;
+    }
+    
+    // Aplica o tema atual
+    applyTheme() {
+        document.documentElement.setAttribute('data-theme', this.currentTheme);
+        localStorage.setItem('perfilTheme', this.currentTheme);
+        
+        // Atualiza o ícone do botão de tema
+        const themeButton = document.getElementById('toggle-theme-btn');
+        if (themeButton) {
+            const icon = themeButton.querySelector('i');
+            if (icon) {
+                if (this.currentTheme === 'dark') {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+            }
+        }
+    }
+}
+
+// Funções de utilidade
+function showNotification(message, type = 'info', inCard = false) {
+    if (inCard) {
+        // Notificação que sobrepõe o card
+        const cardContainer = document.querySelector('.card-container');
+        if (!cardContainer) return; // Se não estiver na tela do jogo
+        
+        // Remove notificações anteriores
+        const oldNotifications = cardContainer.querySelectorAll('.card-notification');
+        oldNotifications.forEach(n => n.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = `card-notification ${type}`;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas fa-${icon}"></i>
+            </div>
+            <div class="notification-message">${message}</div>
+        `;
+        
+        cardContainer.appendChild(notification);
+        
+        // Remove a notificação após 3 segundos
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    } else {
+        // Notificação padrão
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas fa-${icon}"></i>
+            </div>
+            <div class="notification-message">${message}</div>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Remove a notificação após 3 segundos
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+}
+
+function createConfetti() {
+    const container = document.querySelector('.game-container');
+    const colors = ['#3a86ff', '#4caf50', '#ff6b6b', '#ffd166', '#118ab2'];
+    
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.top = `${Math.random() * 20}%`;
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        // Tamanho aleatório
+        const size = Math.random() * 10 + 5;
+        confetti.style.width = `${size}px`;
+        confetti.style.height = `${size}px`;
+        
+        // Formas variadas
+        const shape = Math.floor(Math.random() * 3);
+        if (shape === 0) {
+            confetti.style.borderRadius = '50%'; // Círculo
+        } else if (shape === 1) {
+            confetti.style.borderRadius = '0'; // Quadrado
+        } else {
+            confetti.style.width = '0';
+            confetti.style.height = '0';
+            confetti.style.borderLeft = `${size/2}px solid transparent`;
+            confetti.style.borderRight = `${size/2}px solid transparent`;
+            confetti.style.borderBottom = `${size}px solid ${colors[Math.floor(Math.random() * colors.length)]}`;
+            confetti.style.backgroundColor = 'transparent';
+        }
+        
+        // Animação personalizada com duração variável
+        const duration = 5;
+        confetti.style.animation = `confetti ${duration}s ease-out forwards`;
+        confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+        
+        container.appendChild(confetti);
+        
+        // Remove confetti após a animação
+        setTimeout(() => {
+            confetti.remove();
+        }, duration * 1000 + 500);
+    }
+}
+
+// Inicializa as variáveis globais
+let gameState = new GameState();
+let themeManager = new ThemeManager();
+let timerInterval = null;
+
+// Event Listeners para elementos da interface
+document.addEventListener('DOMContentLoaded', () => {
+    // Carrega o histórico de cartas usadas
+    const savedUsedCards = localStorage.getItem('perfilUsedCards');
+    if (savedUsedCards) {
+        gameState.usedCards = JSON.parse(savedUsedCards);
+    }
+    
+    // Carrega o histórico de jogos
+    gameState.loadHistory();
+    updateGameHistory();
+    
+    // Atualiza as estatísticas de cartas
+    updateCardStats();
+    
+    // Botões da tela inicial
+    document.getElementById('start-game-btn').addEventListener('click', startGame);
+    document.getElementById('load-game-btn').addEventListener('click', loadGame);
+    document.getElementById('toggle-theme-btn').addEventListener('click', toggleTheme);
+    document.getElementById('reset-cards-btn').addEventListener('click', () => gameState.resetUsedCards());
+    document.getElementById('debug-game-btn').addEventListener('click', debugGame);
+
+    // Botões de dificuldade
+    const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+    const difficultyDescriptions = {
+        "easy": "Filmes e séries populares e fáceis de adivinhar",
+        "medium": "Filmes e séries conhecidos com nível médio de dificuldade",
+        "hard": "Filmes e séries mais desafiadores e menos mainstream",
+        "cult": "Filmes e séries cult, alternativos e menos conhecidos",
+        "random": "Mistura aleatória de todos os níveis de dificuldade",
+        "teamChoice": "Cada equipe escolhe a dificuldade da pergunta no início de sua rodada."
+    };
+    
+    const difficultyDescription = document.getElementById('difficulty-description');
+    
+    difficultyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove a classe 'selected' de todos os botões
+            difficultyButtons.forEach(btn => btn.classList.remove('selected'));
+            // Adiciona a classe 'selected' ao botão clicado
+            button.classList.add('selected');
+            // Define a dificuldade
+            const difficulty = button.dataset.difficulty;
+            gameState.difficulty = difficulty;
+            // Atualiza a descrição
+            difficultyDescription.textContent = difficultyDescriptions[difficulty];
+        });
+    });
+    
+    // Seleciona a dificuldade média por padrão
+    document.querySelector('[data-difficulty="medium"]').classList.add('selected');
+    difficultyDescription.textContent = difficultyDescriptions["medium"];
+
+    // Botões de número de rodadas
+    const roundsButtons = document.querySelectorAll('.rounds-btn');
+    roundsButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            roundsButtons.forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
+            gameState.totalRounds = parseInt(button.dataset.rounds);
+        });
+    });
+
+    // Seleciona 10 rodadas por padrão
+    document.querySelector('[data-rounds="10"]').classList.add('selected');
+    gameState.totalRounds = 10;
+
+    // Botões da tela de jogo
+    document.getElementById('save-game-btn').addEventListener('click', saveGame);
+    document.getElementById('back-to-menu-btn').addEventListener('click', backToMenu);
+    document.getElementById('reveal-clue-btn').addEventListener('click', revealClue);
+    document.getElementById('submit-answer-btn').addEventListener('click', submitAnswer);
+    document.getElementById('show-answer-btn').addEventListener('click', showAnswer);
+    
+    // Campo de resposta (Enter para enviar)
+    document.getElementById('answer-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            submitAnswer();
+        }
+    });
+    
+    // Botões da tela de resultado
+    document.getElementById('new-game-btn').addEventListener('click', setupNewGame);
+    document.getElementById('return-menu-btn').addEventListener('click', backToMenu);
+});
+
+// Event listeners for in-game difficulty choice buttons
+document.querySelectorAll('.difficulty-choice-btn.ingame-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        const chosenDifficulty = button.dataset.difficulty;
+        const points = parseInt(button.dataset.points);
+        // Store the chosen difficulty and points for the current round/card
+        gameState.currentCardDifficulty = chosenDifficulty;
+        gameState.currentCardPoints = points;
+
+        // Hide the difficulty choice and show the card
+        document.getElementById('team-difficulty-choice-container').classList.add('hidden');
+        document.getElementById('game-content').classList.remove('hidden');
+        
+        // Now fetch a card of the chosen difficulty
+        fetchCardForTeamChoice(chosenDifficulty);
+    });
+});
+
+function fetchCardForTeamChoice(difficulty) {
+    let availableCards = [];
+    if (difficulty === 'easy') {
+        availableCards = databaseEasy.filter(card => !gameState.usedCards.includes(card.answer));
+    } else if (difficulty === 'medium') {
+        availableCards = databaseMedium.filter(card => !gameState.usedCards.includes(card.answer));
+    } else if (difficulty === 'hard') {
+        availableCards = databaseHard.filter(card => !gameState.usedCards.includes(card.answer));
+    } else if (difficulty === 'cult') {
+        availableCards = databaseCult.filter(card => !gameState.usedCards.includes(card.answer));
+    }
+
+    if (availableCards.length === 0) {
+        showNotification('Todas as cartas desta dificuldade já foram usadas. Reiniciando...', 'error');
+        // Potentially reset used cards for this difficulty or pick another one
+        // For now, let's pick a random card from any difficulty
+        gameState.currentCard = gameState.getNewCard(); // Fallback
+    } else {
+        const randomIndex = Math.floor(Math.random() * availableCards.length);
+        gameState.currentCard = availableCards[randomIndex];
+        gameState.usedCards.push(gameState.currentCard.answer);
+        localStorage.setItem('perfilUsedCards', JSON.stringify(gameState.usedCards));
+    }
+    setupCardUI(); // Update UI with the new card
+}
+
+// Funções principais do jogo
+function startGame() {
+    // Obtém os nomes das equipes
+    const team1Name = document.getElementById('team1').value.trim() || 'Equipe 1';
+    const team2Name = document.getElementById('team2').value.trim() || 'Equipe 2';
+    
+    // Preserve the currently selected difficulty from the global gameState
+    const selectedDifficulty = gameState.difficulty;
+
+    // Inicializa o estado do jogo
+    gameState = new GameState();
+    gameState.team1 = team1Name;
+    gameState.team2 = team2Name;
+    gameState.difficulty = selectedDifficulty; // Apply the preserved difficulty
+    
+    // Obtém o tempo limite selecionado
+    const selectedTimerBtn = document.querySelector('.timer-btn.selected');
+    if (selectedTimerBtn) {
+        gameState.timeLimit = parseInt(selectedTimerBtn.dataset.time);
+    }
+
+    // Obtém o número de rodadas selecionado
+    const selectedRoundsBtn = document.querySelector('.rounds-btn.selected');
+    if (selectedRoundsBtn) {
+        gameState.totalRounds = parseInt(selectedRoundsBtn.dataset.rounds);
+    }
+    
+    // Carrega o histórico de cartas usadas
+    const savedUsedCards = localStorage.getItem('perfilUsedCards');
+    if (savedUsedCards) {
+        gameState.usedCards = JSON.parse(savedUsedCards);
+    }
+    
+    // Inicia o jogo
+    showGameScreen();
+    newRound();
+}
+
+function loadGame() {
+    if (gameState.load()) {
+        showGameScreen();
+        updateGameUI();
+    } else {
+        showNotification('Nenhum jogo salvo encontrado!', 'error');
+    }
+}
+
+function saveGame() {
+    gameState.save();
+}
+
+function backToMenu() {
+    document.getElementById('start-screen').classList.remove('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
+    
+    // Atualiza as estatísticas de cartas ao voltar para o menu
+    updateCardStats();
+}
+
+function toggleTheme() {
+    const newTheme = themeManager.toggleTheme();
+    showNotification(`Tema ${newTheme === 'dark' ? 'escuro' : 'claro'} ativado!`);
+}
+
+function showGameScreen() {
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
+    
+    // Atualiza os nomes das equipes na interface
+    document.getElementById('team1-name').textContent = gameState.team1;
+    document.getElementById('team2-name').textContent = gameState.team2;
+    document.getElementById('team1-points').textContent = gameState.team1Points;
+    document.getElementById('team2-points').textContent = gameState.team2Points;
+    
+    // Destaca a equipe ativa
+    if (gameState.activeTeam === 1) {
+        document.getElementById('team1-display').classList.add('active-team');
+        document.getElementById('team2-display').classList.remove('active-team');
+    } else {
+        document.getElementById('team1-display').classList.remove('active-team');
+        document.getElementById('team2-display').classList.add('active-team');
+    }
+      // Configura o timer
+    const timerDisplay = document.getElementById('timer-display');
+    if (gameState.timeLimit > 0) {
+        if (gameState.timeRemaining <= 0) {
+            gameState.timeRemaining = gameState.timeLimit;
+        }
+        updateTimerDisplay();
+        timerDisplay.classList.remove('hidden');
+    } else {
+        timerDisplay.classList.add('hidden');
+    }
+}
+
+function showResultScreen() {
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    
+    // Atualiza as informações finais
+    document.getElementById('final-team1-name').textContent = gameState.team1;
+    document.getElementById('final-team2-name').textContent = gameState.team2;
+    document.getElementById('final-team1-points').textContent = gameState.team1Points;
+    document.getElementById('final-team2-points').textContent = gameState.team2Points;
+    
+    // Determina o vencedor
+    let winnerMessage = '';
+    if (gameState.team1Points > gameState.team2Points) {
+        winnerMessage = `<i class="fas fa-trophy"></i> ${gameState.team1} venceu!`;
+    } else if (gameState.team2Points > gameState.team1Points) {
+        winnerMessage = `<i class="fas fa-trophy"></i> ${gameState.team2} venceu!`;
+    } else {
+        winnerMessage = '<i class="fas fa-handshake"></i> Empate!';
+    }
+    
+    document.getElementById('winner-announcement').innerHTML = winnerMessage;
+    
+    // Salva o resultado no histórico
+    gameState.saveToHistory();
+    updateGameHistory();
+    
+    // Efeito de confete
+    createConfetti();
+}
+
+function newRound() {
+    // Limpa o container de pistas
+    const cluesContainer = document.getElementById('clues-container');
+    cluesContainer.innerHTML = '';
+    
+    // Reseta o campo de resposta
+    document.getElementById('answer-input').value = '';
+    
+    // Atualiza o número da rodada
+    document.getElementById('current-round').textContent = gameState.currentRound;
+    document.getElementById('total-rounds-display').textContent = gameState.totalRounds;
+    
+    gameState.revealedClues = 0;
+
+    // Atualiza a interface (destaca a equipe ativa)
+    if (gameState.activeTeam === 1) {
+        document.getElementById('team1-display').classList.add('active-team');
+        document.getElementById('team2-display').classList.remove('active-team');
+    } else {
+        document.getElementById('team1-display').classList.remove('active-team');
+        document.getElementById('team2-display').classList.add('active-team');
+    }
+
+    if (gameState.difficulty === 'teamChoice') {
+        document.getElementById('game-content').classList.add('hidden');
+        const teamChoiceContainer = document.getElementById('team-difficulty-choice-container');
+        teamChoiceContainer.classList.remove('hidden');
+        const currentTeamName = gameState.activeTeam === 1 ? gameState.team1 : gameState.team2;
+        document.getElementById('current-team-for-difficulty-choice').textContent = currentTeamName;
+        // Card will be fetched after team makes a choice
+    } else {
+        document.getElementById('game-content').classList.remove('hidden');
+        document.getElementById('team-difficulty-choice-container').classList.add('hidden');
+        gameState.currentCard = gameState.getNewCard();
+        setupCardUI();
+    }
+}
+
+function setupCardUI() {
+    if (!gameState.currentCard) return; // Should not happen if logic is correct
+
+    // Atualiza o tipo de carta e ícone
+    const cardTypeElement = document.getElementById('card-type-text');
+    const cardIconElement = document.getElementById('card-icon');
+    const cardTypeContainer = document.querySelector('.card-type');
+    
+    cardTypeElement.textContent = gameState.currentCard.type;
+    cardIconElement.className = gameState.currentCard.icon;
+      // Adiciona a animação de piscar para chamar atenção para a categoria
+    cardTypeContainer.style.animation = 'blinkCategory 0.5s ease-in-out 3';
+    
+    // Remove a animação após ela terminar e então faz o botão Revelar Pista piscar
+    setTimeout(() => {
+        cardTypeContainer.style.animation = '';
+        
+        // Faz o botão "Revelar Pista" piscar para guiar o jogador
+        const revealButton = document.getElementById('reveal-clue-btn');
+        revealButton.disabled = false; // Ensure button is enabled
+        revealButton.style.animation = 'blinkRevealButton 0.6s ease-in-out 3';
+        
+        // Remove a animação do botão após ela terminar
+        setTimeout(() => {
+            revealButton.style.animation = '';
+        }, 1800); // 0.6s * 3 = 1.8s
+    }, 1500); // 0.5s * 3 = 1.5s
+    
+    // Define a pontuação inicial
+    // If teamChoice, points are set when difficulty is chosen
+    const pointsDisplay = document.getElementById('current-points');
+    if (gameState.difficulty === 'teamChoice' && gameState.currentCardPoints) {
+        pointsDisplay.textContent = gameState.currentCardPoints;
+    } else {
+        pointsDisplay.textContent = 10; // Default for other modes
+    }
+}
+
+function revealClue() {
+    if (!gameState.currentCard || gameState.revealedClues >= gameState.currentCard.clues.length) {
+        return;
+    }
+    
+    // Revela a próxima pista
+    const cluesContainer = document.getElementById('clues-container');
+    const clue = document.createElement('div');
+    clue.className = 'clue';
+    clue.textContent = gameState.currentCard.clues[gameState.revealedClues];
+    cluesContainer.appendChild(clue);
+    
+    // Inicia o timer na primeira pista revelada
+    if (gameState.revealedClues === 0 && gameState.timeLimit > 0) {
+        startTimer();
+    }
+    
+    gameState.revealedClues++;
+    
+    // Atualiza a pontuação atual
+    let pointsToUpdate;
+    if (gameState.difficulty === 'teamChoice' && gameState.currentCardPoints) {
+        // Points decrease from the chosen base for teamChoice mode
+        // Example: Cult (50 pts). 1st clue = 50, 2nd = 40, 3rd = 30, etc. Min 10.
+        // This is a simple linear decrease, adjust as needed.
+        const maxPoints = gameState.currentCardPoints;
+        const pointsLostPerClue = 10; // Or a fraction of maxPoints
+        pointsToUpdate = Math.max(maxPoints - (gameState.revealedClues -1) * pointsLostPerClue, Math.min(10, maxPoints));
+    } else {
+        pointsToUpdate = Math.max(11 - gameState.revealedClues, 1);
+    }
+    document.getElementById('current-points').textContent = pointsToUpdate;
+    
+    // Se todas as pistas foram reveladas, desabilita o botão
+    if (gameState.revealedClues >= gameState.currentCard.clues.length) {
+        document.getElementById('reveal-clue-btn').disabled = true;
+    }
+}
+
+function submitAnswer() {
+    const answerInput = document.getElementById('answer-input');
+    const answer = answerInput.value.trim();
+    
+    if (!answer) {
+        showNotification('Digite uma resposta!', 'error');
+        return;
+    }
+      if (gameState.checkAnswer(answer)) {
+        // Resposta correta
+        let points;
+        if (gameState.difficulty === 'teamChoice' && gameState.currentCardPoints) {
+            const maxPoints = gameState.currentCardPoints;
+            const pointsLostPerClue = 10; 
+            points = Math.max(maxPoints - (gameState.revealedClues -1) * pointsLostPerClue, Math.min(10, maxPoints));
+        } else {
+            points = Math.max(11 - gameState.revealedClues, 1);
+        }
+        
+        // Adiciona os pontos à equipe ativa
+        if (gameState.activeTeam === 1) {
+            gameState.team1Points += points;
+            document.getElementById('team1-points').textContent = gameState.team1Points;
+        } else {
+            gameState.team2Points += points;
+            document.getElementById('team2-points').textContent = gameState.team2Points;
+        }
+          // Notificação customizada para pontos que dura mais tempo
+        const cardContainer = document.querySelector('.card-container');
+        if (!cardContainer) return; // Se não estiver na tela do jogo
+        
+        // Remove notificações anteriores
+        const oldNotifications = cardContainer.querySelectorAll('.card-notification');
+        oldNotifications.forEach(n => n.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = 'card-notification success';
+        
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="notification-message">Resposta correta! +${points} pontos</div>
+        `;        cardContainer.appendChild(notification);
+        createConfetti();
+          // Avança para a próxima rodada ou finaliza o jogo após exatamente 5 segundos
+        // e remove a notificação logo antes de avançar
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            // Esconde a tela do jogo antes de remover a notificação
+            document.getElementById('game-screen').classList.add('hidden');
+            setTimeout(() => {
+                notification.remove();
+                // Certifique-se de que o game-screen permaneça oculto
+                document.getElementById('game-screen').classList.add('hidden');
+                advanceGame();
+            }, 300);
+        }, 4700);   
+    } else {
+        // Resposta incorreta
+        showNotification('Resposta incorreta!', 'error', true);
+        answerInput.value = '';
+    }
+}
+
+function showAnswer() {
+    const answer = gameState.currentCard ? gameState.currentCard.answer : '';
+    
+    // Notificação customizada para a resposta que dura mais tempo
+    const cardContainer = document.querySelector('.card-container');
+    if (!cardContainer) return; // Se não estiver na tela do jogo
+    
+    // Remove notificações anteriores
+    const oldNotifications = cardContainer.querySelectorAll('.card-notification');
+    oldNotifications.forEach(n => n.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = 'card-notification info';
+    
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="notification-message">A resposta correta é: ${answer}</div>
+    `;      cardContainer.appendChild(notification);
+      // Avança para a próxima rodada ou finaliza o jogo após exatamente 5 segundos
+    // e remove a notificação logo antes de avançar
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        // Esconde a tela do jogo antes de remover a notificação
+        document.getElementById('game-screen').classList.add('hidden');
+        setTimeout(() => {
+            notification.remove();
+            // Certifique-se de que o game-screen permaneça oculto
+            document.getElementById('game-screen').classList.add('hidden');
+            advanceGame();
+        }, 300);
+    }, 4700); // 4.7s + 0.3s = 5s total
+}
+
+function advanceGame() {
+    // Certifique-se de que a tela do jogo esteja oculta
+    document.getElementById('game-screen').classList.add('hidden');
+    
+    // Alterna a equipe ativa
+    gameState.activeTeam = gameState.activeTeam === 1 ? 2 : 1;
+    
+    // Avança para a próxima rodada
+    gameState.currentRound++;
+    
+    // Verifica se o jogo acabou
+    if (gameState.currentRound > gameState.totalRounds) {
+        showResultScreen();
+    } else {
+        showTeamTransition();
+    }
+}
+
+function showTeamTransition() {
+    // Certifique-se de que a tela do jogo esteja oculta
+    document.getElementById('game-screen').classList.add('hidden');
+    
+    // Mostra a tela de transição
+    const transitionScreen = document.getElementById('team-transition-screen');
+    transitionScreen.classList.remove('hidden');
+    
+    // Define o nome da equipe ativa
+    const teamName = gameState.activeTeam === 1 ? gameState.team1 : gameState.team2;
+    document.getElementById('transition-team-name').textContent = teamName;
+    
+    // Destaca a cor da equipe na transição
+    document.getElementById('transition-team-name').style.color = 
+        gameState.activeTeam === 1 ? 'var(--team1-color)' : 'var(--team2-color)';
+    document.getElementById('transition-countdown').style.color = 
+        gameState.activeTeam === 1 ? 'var(--team1-color)' : 'var(--team2-color)';
+    document.getElementById('transition-countdown').style.background = 
+        gameState.activeTeam === 1 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(58, 134, 255, 0.1)';
+    
+    // Inicia a contagem regressiva
+    let countdown = 5;
+    document.getElementById('transition-countdown').textContent = countdown;
+    
+    const countInterval = setInterval(() => {
+        countdown--;
+        document.getElementById('transition-countdown').textContent = countdown;        if (countdown <= 0) {
+            clearInterval(countInterval);
+            
+            // Esconde a tela de transição
+            transitionScreen.classList.add('hidden');
+            
+            // Pequeno atraso antes de mostrar a tela do jogo para garantir que não haja sobreposição
+            setTimeout(() => {
+                // Certifique-se de que o game-screen esteja configurado corretamente antes de mostrá-lo
+                // Atualiza a interface (destaca a equipe ativa)
+                if (gameState.activeTeam === 1) {
+                    document.getElementById('team1-display').classList.add('active-team');
+                    document.getElementById('team2-display').classList.remove('active-team');
+                } else {
+                    document.getElementById('team1-display').classList.remove('active-team');
+                    document.getElementById('team2-display').classList.add('active-team');
+                }
+                
+                // Agora mostra a tela do jogo
+                document.getElementById('game-screen').classList.remove('hidden');
+                
+                // Inicia a nova rodada
+                newRound();
+                
+                // Reset o timer para a próxima rodada, mas não inicie até a primeira pista ser revelada
+                if (gameState.timeLimit > 0) {
+                    gameState.timeRemaining = gameState.timeLimit;
+                    updateTimerDisplay();
+                }
+            }, 100);
+        }
+    }, 1000);
+}
+
+function setupNewGame() {
+    // Mantém os nomes das equipes e a dificuldade, mas reseta o resto
+    const team1Name = gameState.team1;
+    const team2Name = gameState.team2;
+    const difficulty = gameState.difficulty;
+    
+    gameState = new GameState();
+    gameState.team1 = team1Name;
+    gameState.team2 = team2Name;
+    gameState.difficulty = difficulty;
+    
+    // Carrega o histórico de cartas usadas
+    const savedUsedCards = localStorage.getItem('perfilUsedCards');
+    if (savedUsedCards) {
+        gameState.usedCards = JSON.parse(savedUsedCards);
+    }
+    
+    showGameScreen();
+    newRound();
+}
+
+function updateGameUI() {
+    // Atualiza o número da rodada
+    document.getElementById('current-round').textContent = gameState.currentRound;
+    document.getElementById('total-rounds-display').textContent = gameState.totalRounds;
+    
+    // Atualiza os pontos das equipes
+    document.getElementById('team1-name').textContent = gameState.team1;
+    document.getElementById('team2-name').textContent = gameState.team2;
+    document.getElementById('team1-points').textContent = gameState.team1Points;
+    document.getElementById('team2-points').textContent = gameState.team2Points;
+    
+    // Destaca a equipe ativa
+    if (gameState.activeTeam === 1) {
+        document.getElementById('team1-display').classList.add('active-team');
+        document.getElementById('team2-display').classList.remove('active-team');
+    } else {
+        document.getElementById('team1-display').classList.remove('active-team');
+        document.getElementById('team2-display').classList.add('active-team');
+    }
+    
+    // Configura o timer
+    const timerDisplay = document.getElementById('timer-display');
+    if (gameState.timeLimit > 0) {
+        timerDisplay.classList.remove('hidden');
+        updateTimerDisplay();
+    } else {
+        timerDisplay.classList.add('hidden');
+    }
+    
+    // Atualiza o tipo de carta e ícone
+    if (gameState.currentCard) {
+        const cardTypeElement = document.getElementById('card-type-text');
+        const cardIconElement = document.getElementById('card-icon');
+        const cardTypeContainer = document.querySelector('.card-type');
+        
+        cardTypeElement.textContent = gameState.currentCard.type;
+        cardIconElement.className = gameState.currentCard.icon;
+          // Adiciona a animação de piscar para chamar atenção para a categoria
+        cardTypeContainer.style.animation = 'blinkCategory 0.5s ease-in-out 3';
+        
+        // Remove a animação após ela terminar e então faz o botão Revelar Pista piscar
+        setTimeout(() => {
+            cardTypeContainer.style.animation = '';
+            
+            // Faz o botão "Revelar Pista" piscar para guiar o jogador
+            const revealButton = document.getElementById('reveal-clue-btn');
+            revealButton.style.animation = 'blinkRevealButton 0.6s ease-in-out 3';
+            
+            // Remove a animação do botão após ela terminar
+            setTimeout(() => {
+                revealButton.style.animation = '';
+            }, 1800); // 0.6s * 3 = 1.8s
+        }, 1500); // 0.5s * 3 = 1.5s
+        
+        // Recria as pistas já reveladas
+        const cluesContainer = document.getElementById('clues-container');
+        cluesContainer.innerHTML = '';
+        
+        for (let i = 0; i < gameState.revealedClues; i++) {
+            const clue = document.createElement('div');
+            clue.className = 'clue';
+            clue.textContent = gameState.currentCard.clues[i];
+            cluesContainer.appendChild(clue);
+        }
+        
+        // Atualiza a pontuação atual
+        const currentPoints = Math.max(11 - gameState.revealedClues, 1);
+        document.getElementById('current-points').textContent = currentPoints;
+    }
+}
+
+function updateGameHistory() {
+    const historyContainer = document.getElementById('game-history');
+    historyContainer.innerHTML = '';
+    
+    const history = gameState.loadHistory();
+    
+    if (history.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'history-item';
+        emptyMessage.textContent = 'Nenhum jogo salvo no histórico.';
+        historyContainer.appendChild(emptyMessage);
+        return;
+    }
+    
+    history.forEach(game => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+            <span>${game.date}</span> - 
+            <strong>${game.team1}</strong>: ${game.team1Points} vs 
+            <strong>${game.team2}</strong>: ${game.team2Points} - 
+            Vencedor: <strong>${game.winner}</strong>
+        `;
+        historyContainer.appendChild(historyItem);
+    });
+}
+
+// Conta o total de cartas e as cartas restantes
+GameState.prototype.getCardsCount = function() {
+    const totalEasy = databaseEasy.length;
+    const totalMedium = databaseMedium.length;
+    const totalHard = databaseHard.length;
+    const totalCult = databaseCult.length;
+    
+    const total = totalEasy + totalMedium + totalHard + totalCult;
+    const used = this.usedCards.length;
+    const remaining = total - used;
+    
+    // Calcula o percentual do jogo que ainda pode ser jogado
+    // Assumimos que um jogo completo precisa de 10 cartas (totalRounds)
+    const minCardsNeeded = this.totalRounds;
+    const cardsAvailabilityPercent = Math.min(100, Math.max(0, (remaining / minCardsNeeded) * 100));
+    
+    return {
+        total,
+        used,
+        remaining,
+        availabilityPercent: cardsAvailabilityPercent,
+        categories: {
+            easy: totalEasy,
+            medium: totalMedium,
+            hard: totalHard,
+            cult: totalCult
+        }
+    };
+};
+
+function updateCardStats() {
+    const stats = gameState.getCardsCount();
+    const progressBar = document.querySelector('#reset-cards-btn .progress-bar');
+    
+    // Se temos menos de 100% das cartas necessárias para um jogo completo, 
+    // mostramos a barra de progresso vermelha proporcionalmente
+    const inversePercent = 100 - stats.availabilityPercent;
+    progressBar.style.width = `${inversePercent}%`;
+    
+    // Atualiza o tooltip com informação detalhada
+    const resetButton = document.getElementById('reset-cards-btn');
+    resetButton.title = `Cartas usadas: ${stats.used}, Cartas restantes: ${stats.remaining}, Total: ${stats.total}. 
+    ${stats.remaining < gameState.totalRounds ? 'Atenção: Não há cartas suficientes para um jogo completo!' : ''}`;
+    
+    // Notifica o usuário se as cartas estão acabando (menos de 15 cartas disponíveis)
+    if (stats.remaining <= 15 && stats.remaining > 0 && document.getElementById('start-screen').classList.contains('hidden') === false) {
+        showNotification(`Atenção: Restam apenas ${stats.remaining} cartas! Considere limpar o histórico.`, 'error');
+    }
+}
+
+function getCardDifficulty(card, selectedGameDifficulty) {
+    if (selectedGameDifficulty !== 'random') {
+        return selectedGameDifficulty;
+    }
+    // If game difficulty is random, we need to check which database the card belongs to.
+    if (databaseEasy.some(dbCard => dbCard.answer === card.answer)) return 'easy';
+    if (databaseMedium.some(dbCard => dbCard.answer === card.answer)) return 'medium';
+    if (databaseHard.some(dbCard => dbCard.answer === card.answer)) return 'hard';
+    if (databaseCult.some(dbCard => dbCard.answer === card.answer)) return 'cult';
+    return 'unknown'; 
+}
+
+function debugGame() {
+    console.log("--- DEBUG GAME ---");
+
+    const team1Name = document.getElementById('team1').value.trim() || 'Equipe 1';
+    const team2Name = document.getElementById('team2').value.trim() || 'Equipe 2';
+    const selectedRounds = gameState.totalRounds;
+    const gameDifficultyForSimulation = gameState.difficulty; // Use the selected difficulty for this simulation session
+
+    console.log(`Equipe 1: ${team1Name}`);
+    console.log(`Equipe 2: ${team2Name}`);
+    console.log(`Total de Rodadas: ${selectedRounds}`);
+    console.log(`Dificuldade do Jogo (para esta simulação): ${gameDifficultyForSimulation}`);
+    console.log("--------------------");
+
+    const originalUsedCards = [...gameState.usedCards];
+    const originalGameDifficultySetting = gameState.difficulty; // Save the actual game's difficulty setting
+
+    let team1DifficultyCounts = { easy: 0, medium: 0, hard: 0, cult: 0, unknown: 0 };
+    let team2DifficultyCounts = { easy: 0, medium: 0, hard: 0, cult: 0, unknown: 0 };
+
+    // Helper function to shuffle an array
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // Helper function to get shuffled cards from a database, avoiding already used ones
+    function getShuffledCardsFromDb(db, count, initialUsed, difficultyName) {
+        const availableCards = db.filter(card => !initialUsed.includes(card.answer));
+        shuffleArray(availableCards);
+        return availableCards.slice(0, count).map(card => ({ ...card, _sourceDifficulty: difficultyName }));
+    }
+
+
+    if (gameDifficultyForSimulation === 'random') {
+        console.log("\\n--- Simulação Modo Random com Distribuição Balanceada ---");
+
+        const difficultySettings = [
+            { name: 'easy', percent: 0.20, db: databaseEasy, count: 0, float: 0, frac: 0 },
+            { name: 'medium', percent: 0.50, db: databaseMedium, count: 0, float: 0, frac: 0 },
+            { name: 'hard', percent: 0.25, db: databaseHard, count: 0, float: 0, frac: 0 },
+            { name: 'cult', percent: 0.05, db: databaseCult, count: 0, float: 0, frac: 0 }
+        ];
+
+        let totalFlooredCount = 0;
+        difficultySettings.forEach(d => {
+            d.float = selectedRounds * d.percent;
+            d.count = Math.floor(d.float);
+            d.frac = d.float - d.count;
+            totalFlooredCount += d.count;
+        });
+
+        let remainderToDistribute = selectedRounds - totalFlooredCount;
+        
+        // Sort by fractional part descending, then by original percent descending for tie-breaking
+        difficultySettings.sort((a, b) => {
+            if (b.frac !== a.frac) return b.frac - a.frac;
+            return b.percent - a.percent;
+        });
+
+        for (let i = 0; i < remainderToDistribute; i++) {
+            difficultySettings[i % difficultySettings.length].count++;
+        }
+        
+        // Final target counts
+        const targetCounts = {};
+        difficultySettings.forEach(d => targetCounts[d.name] = d.count);
+
+        console.log(`Distribuição Alvo para ${selectedRounds} rodadas:`);
+        console.log(`  Fácil: ${targetCounts.easy}, Médio: ${targetCounts.medium}, Difícil: ${targetCounts.hard}, Cult: ${targetCounts.cult}`);
+        console.log("--------------------");
+
+        let simulatedDeck = [];
+        difficultySettings.forEach(d => {
+            const cardsOfType = getShuffledCardsFromDb(d.db, targetCounts[d.name], originalUsedCards, d.name);
+            if (cardsOfType.length < targetCounts[d.name]) {
+                console.warn(`Atenção: Não há cartas '${d.name}' suficientes. Encontradas: ${cardsOfType.length}, Necessárias: ${targetCounts[d.name]}`);
+            }
+            simulatedDeck.push(...cardsOfType);
+        });
+
+        shuffleArray(simulatedDeck);
+        
+        if (simulatedDeck.length < selectedRounds) {
+            console.warn(`Atenção: O baralho simulado final tem ${simulatedDeck.length} cartas, menos que as ${selectedRounds} rodadas selecionadas devido à falta de cartas únicas disponíveis.`);
+        }
+
+        console.log(`\\n--- Cartas para ${team1Name} (Modo Random Simulado) ---`);
+        for (let r = 0; r < Math.ceil(selectedRounds / 2); r++) {
+            const cardIndex = r * 2;
+            if (cardIndex < simulatedDeck.length) {
+                const card = simulatedDeck[cardIndex];
+                // Use _sourceDifficulty if available, otherwise fallback to getCardDifficulty
+                const actualDifficulty = card._sourceDifficulty || getCardDifficulty(card, 'random');
+                if (team1DifficultyCounts.hasOwnProperty(actualDifficulty)) {
+                    team1DifficultyCounts[actualDifficulty]++;
+                } else {
+                    team1DifficultyCounts.unknown++;
+                }
+                console.log(`Rodada ${r * 2 + 1}: "${card.answer}" (Dificuldade Real: ${actualDifficulty})`);
+            } else {
+                console.log(`Rodada ${r * 2 + 1}: Não há mais cartas no baralho simulado.`);
+                break;
+            }
+        }
+
+        console.log(`\\n--- Cartas para ${team2Name} (Modo Random Simulado) ---`);
+        for (let r = 0; r < Math.floor(selectedRounds / 2); r++) {
+            const cardIndex = r * 2 + 1;
+            if (cardIndex < simulatedDeck.length) {
+                const card = simulatedDeck[cardIndex];
+                const actualDifficulty = card._sourceDifficulty || getCardDifficulty(card, 'random');
+                if (team2DifficultyCounts.hasOwnProperty(actualDifficulty)) {
+                    team2DifficultyCounts[actualDifficulty]++;
+                } else {
+                    team2DifficultyCounts.unknown++;
+                }
+                console.log(`Rodada ${r * 2 + 2}: "${card.answer}" (Dificuldade Real: ${actualDifficulty})`);
+            } else {
+                console.log(`Rodada ${r * 2 + 2}: Não há mais cartas no baralho simulado.`);
+                break;
+            }
+        }
+
+    } else { // Logic for non-random (specific) difficulties
+        console.log(`\\n--- Simulação Modo ${gameDifficultyForSimulation} ---`);
+        // Temporarily set gameState for simulation
+        gameState.difficulty = gameDifficultyForSimulation;
+
+        // Simula o jogo para a Equipe 1
+        console.log(`\\n--- Cartas para ${team1Name} ---`);
+        gameState.usedCards = [...originalUsedCards]; 
+        
+        for (let i = 0; i < Math.ceil(selectedRounds / 2); i++) {
+            const card = gameState.getNewCard(); 
+            if (card) {
+                const actualDifficulty = getCardDifficulty(card, gameDifficultyForSimulation);
+                if (team1DifficultyCounts.hasOwnProperty(actualDifficulty)) {
+                    team1DifficultyCounts[actualDifficulty]++;
+                } else {
+                    team1DifficultyCounts.unknown++;
+                }
+                console.log(`Rodada ${i * 2 + 1}: "${card.answer}" (Dificuldade: ${actualDifficulty})`);
+            } else {
+                console.log(`Rodada ${i * 2 + 1}: Não há mais cartas disponíveis.`);
+                break;
+            }
+        }
+
+        // Simula o jogo para a Equipe 2
+        console.log(`\\n--- Cartas para ${team2Name} ---`);
+        // Setup usedCards for Team 2: must exclude cards Team 1 would have drawn in this simulation
+        let tempUsedCardsForTeam2Sim = [...originalUsedCards];
+        
+        // Simulate Team 1's draws again just to populate tempUsedCardsForTeam2Sim accurately
+        let tempSimGameState = new GameState(); // Use a throwaway GameState
+        tempSimGameState.usedCards = [...originalUsedCards];
+        tempSimGameState.difficulty = gameDifficultyForSimulation;
+
+        for (let i = 0; i < Math.ceil(selectedRounds / 2); i++) {
+            const card = tempSimGameState.getNewCard();
+            if (card) {
+                if (!tempUsedCardsForTeam2Sim.includes(card.answer)) { // Should always be true if getNewCard works
+                     tempUsedCardsForTeam2Sim.push(card.answer); // This is redundant if getNewCard updates its own usedCards
+                }
+            } else { break; }
+        }
+        // The critical part is that tempSimGameState.usedCards now contains what T1 would have used.
+        gameState.usedCards = [...tempSimGameState.usedCards]; // Use this set for T2's simulation
+        
+        for (let i = 0; i < Math.floor(selectedRounds / 2); i++) {
+            const card = gameState.getNewCard();
+            if (card) {
+                const actualDifficulty = getCardDifficulty(card, gameDifficultyForSimulation);
+                 if (team2DifficultyCounts.hasOwnProperty(actualDifficulty)) {
+                    team2DifficultyCounts[actualDifficulty]++;
+                } else {
+                    team2DifficultyCounts.unknown++;
+                }
+                console.log(`Rodada ${i * 2 + 2}: "${card.answer}" (Dificuldade: ${actualDifficulty})`);
+            } else {
+                console.log(`Rodada ${i * 2 + 2}: Não há mais cartas disponíveis.`);
+                break;
+            }
+        }
+    }
+
+    // Restore original gameState properties
+    gameState.usedCards = originalUsedCards;
+    gameState.difficulty = originalGameDifficultySetting; // Restore the actual game's difficulty
+
+    console.log("\\n--- Resumo de Dificuldade por Equipe (Simulado) ---");
+    console.log(`${team1Name}:`);
+    console.log(`  Fácil: ${team1DifficultyCounts.easy}, Médio: ${team1DifficultyCounts.medium}, Difícil: ${team1DifficultyCounts.hard}, Cult: ${team1DifficultyCounts.cult}${team1DifficultyCounts.unknown > 0 ? ', Desconhecido: ' + team1DifficultyCounts.unknown : ''}`);
+    
+    console.log(`\\n${team2Name}:`);
+    console.log(`  Fácil: ${team2DifficultyCounts.easy}, Médio: ${team2DifficultyCounts.medium}, Difícil: ${team2DifficultyCounts.hard}, Cult: ${team2DifficultyCounts.cult}${team2DifficultyCounts.unknown > 0 ? ', Desconhecido: ' + team2DifficultyCounts.unknown : ''}`);
+
+    console.log("--- FIM DEBUG GAME ---");
+}
+
+// Funções de UI (mostrar/esconder telas, atualizar placar, etc.)

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Twist- Jogo de Séries & Filmes</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="timer-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Tela de Início -->
+        <div id="start-screen" class="screen">
+            <div class="logo-container">
+                <h1>Plot Twist<span class="logo-subtitle">Séries & Filmes</span></h1>
+            </div>
+            <div class="setup-container">
+                <div class="team-setup">
+                    <h2>Equipes</h2>
+                    <div class="team-input">
+                        <label for="team1">Equipe 1:</label>
+                        <input type="text" id="team1" placeholder="Nome da Equipe 1">
+                    </div>
+                    <div class="team-input">
+                        <label for="team2">Equipe 2:</label>
+                        <input type="text" id="team2" placeholder="Nome da Equipe 2">
+                    </div>
+                </div>
+
+                <div class="difficulty-setup">
+                    <h2>Dificuldade</h2>
+                    <div class="difficulty-options">
+                        <button class="difficulty-btn" data-difficulty="easy">Fácil</button>
+                        <button class="difficulty-btn" data-difficulty="medium">Médio</button>
+                        <button class="difficulty-btn" data-difficulty="hard">Difícil</button>
+                        <button class="difficulty-btn" data-difficulty="cult">Cult</button>
+                        <button class="difficulty-btn" data-difficulty="random">Random</button>
+                        <button class="difficulty-btn" data-difficulty="teamChoice">Escolha da Equipe</button>
+                    </div>
+                    <br>
+                    <div class="difficulty-description" id="difficulty-description">
+                         
+                    </div>
+                </div>
+                  <div class="timer-setup">
+                    <h2>Tempo por Rodada</h2>
+                    <div class="timer-options">
+                        <button class="timer-btn" data-time="0">Sem Limite</button>
+                        <button class="timer-btn" data-time="60">1 Minuto</button>
+                        <button class="timer-btn" data-time="120">2 Minutos</button>
+                        <button class="timer-btn" data-time="180">3 Minutos</button>
+                        <button class="timer-btn" data-time="240">4 Minutos</button>
+                        <button class="timer-btn" data-time="300">5 Minutos</button>
+                    </div>
+                </div>
+                
+                <div class="rounds-setup">
+                    <h2>Número de Rodadas</h2>
+                    <div class="rounds-options">
+                        <button class="rounds-btn" data-rounds="6">6 Rodadas</button>
+                        <button class="rounds-btn" data-rounds="10">10 Rodadas</button>
+                        <button class="rounds-btn" data-rounds="18">18 Rodadas</button>
+                        <button class="rounds-btn" data-rounds="30">30 Rodadas</button>
+                    </div>
+                </div><div class="game-options">
+                    <button id="start-game-btn" class="primary-btn">Começar Jogo</button>
+                    <button id="load-game-btn" class="secondary-btn">Carregar Jogo</button>
+                    <button id="reset-cards-btn" class="secondary-btn" title="Clique para limpar o histórico de cartas e permitir que cartas já utilizadas apareçam novamente">
+                        <span class="btn-text">Limpar Histórico de Cartas</span>
+                        <div class="progress-bar"></div>
+                    </button>
+                    <!-- <button id="debug-game-btn" class="secondary-btn">Debug Game</button>-->
+                    <button id="toggle-theme-btn" class="icon-btn"><i class="fas fa-moon"></i></button>
+                </div>
+                <div class="history-section">
+                    <h3>Histórico de Partidas</h3>
+                    <div id="game-history" class="history-container">
+                        <!-- Histórico será preenchido via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela de Jogo -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <div class="game-info">
+                    <div class="round-info">Rodada: <span id="current-round">1</span>/<span id="total-rounds-display">10</span></div>
+                    <div id="timer-display" class="timer-display hidden">
+                        <i class="fas fa-clock"></i> <span id="timer-countdown">00:00</span>
+                    </div>
+                    <button id="save-game-btn" class="icon-btn"><i class="fas fa-save"></i></button>
+                    <button id="back-to-menu-btn" class="icon-btn"><i class="fas fa-home"></i></button>
+                </div>
+                <div class="teams-score">
+                    <div id="team1-display" class="team-score active-team">
+                        <div class="team-name" id="team1-name">Equipe 1</div>
+                        <div class="team-points" id="team1-points">0</div>
+                    </div>
+                    <div id="team2-display" class="team-score">
+                        <div class="team-name" id="team2-name">Equipe 2</div>
+                        <div class="team-points" id="team2-points">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="team-difficulty-choice-container" class="hidden" style="text-align: center; margin-bottom: 20px;">
+                <h3><span id="current-team-for-difficulty-choice">Nome da Equipe</span>, escolha a dificuldade para esta rodada:</h3>
+                <div class="difficulty-options-ingame" style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="easy" data-points="10">Fácil (10 pts)</button>
+                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="medium" data-points="20">Médio (20 pts)</button>
+                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="hard" data-points="30">Difícil (30 pts)</button>
+                    <button class="difficulty-choice-btn ingame-btn" data-difficulty="cult" data-points="50">Cult (50 pts)</button>
+                </div>
+            </div>
+
+            <div class="game-content">
+                <div class="card-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-type">
+                                <i id="card-icon" class="fas fa-film"></i>
+                                <span id="card-type-text">FILME</span>
+                            </div>
+                            <div class="points-display">
+                                <span id="current-points">10</span> pontos
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="clues-container" id="clues-container">
+                                <!-- Pistas serão adicionadas dinamicamente -->
+                            </div>
+                            <button id="reveal-clue-btn" class="primary-btn">Revelar Pista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="answer-container">
+                    <input type="text" id="answer-input" placeholder="Digite sua resposta...">
+                    <button id="submit-answer-btn" class="primary-btn">Enviar Palpite</button>
+                    <button id="show-answer-btn" class="secondary-btn">Ver Resposta</button>
+                </div>
+            </div>
+        </div>        <!-- Tela de Resultado -->
+        <div id="result-screen" class="screen hidden">
+            <div class="result-container">
+                <h2>Fim de Jogo!</h2>
+                <div class="final-scores">
+                    <div class="final-team-score">
+                        <div id="final-team1-name">Equipe 1</div>
+                        <div id="final-team1-points" class="final-points">0</div>
+                    </div>
+                    <div class="final-team-score">
+                        <div id="final-team2-name">Equipe 2</div>
+                        <div id="final-team2-points" class="final-points">0</div>
+                    </div>
+                </div>
+                <div id="winner-announcement" class="winner-announcement">
+                    <!-- Anúncio do vencedor -->
+                </div>
+                <div class="result-buttons">
+                    <button id="new-game-btn" class="primary-btn">Novo Jogo</button>
+                    <button id="return-menu-btn" class="secondary-btn">Voltar ao Menu</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela de Transição de Equipe -->
+        <div id="team-transition-screen" class="screen hidden">
+            <div class="transition-container">
+                <h2>Vez da Equipe</h2>
+                <div id="transition-team-name" class="transition-team">Nome da Equipe</div>
+                <div id="transition-countdown" class="transition-countdown">3</div>
+            </div>
+        </div>
+
+        <!-- Sistema de Notificação -->
+        <div id="notification-container" class="notification-container"></div>
+    </div>
+
+    <!-- Carregando bases de dados -->    <script src="database_easy.js"></script>
+    <script src="database_medium.js"></script>
+    <script src="database_hard.js"></script>
+    <script src="database_cult.js"></script>
+    <script src="script.js"></script>
+    <script src="timer.js"></script>
+</body>
+</html>

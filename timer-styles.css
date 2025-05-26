@@ -1,0 +1,85 @@
+/* Timer styles */
+.timer-setup {
+    margin-bottom: 1.5rem;
+}
+
+.timer-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.timer-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--btn-secondary-bg);
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.timer-btn:hover {
+    background: var(--accent-light);
+}
+
+.timer-btn.selected {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.3s;
+}
+
+.timer-display.warning {
+    color: #ff9800;
+}
+
+.timer-display.danger {
+    color: #f44336;
+}
+
+/* Rounds setup styles */
+.rounds-setup {
+    margin-bottom: 1.5rem;
+}
+
+.rounds-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rounds-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--btn-secondary-bg);
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.rounds-btn:hover {
+    background: var(--accent-light);
+}
+
+.rounds-btn.selected {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
