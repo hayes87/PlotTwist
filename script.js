@@ -343,14 +343,14 @@ function showNotification(message, type = 'info', inCard = false) {
 }
 
 function createConfetti() {
-    const container = document.querySelector('.game-container');
+    const container = document.body; // Use body instead of game-container for fullscreen effect
     const colors = ['#3a86ff', '#4caf50', '#ff6b6b', '#ffd166', '#118ab2'];
     
     for (let i = 0; i < 100; i++) {
         const confetti = document.createElement('div');
         confetti.className = 'confetti';
-        confetti.style.left = `${Math.random() * 100}%`;
-        confetti.style.top = `${Math.random() * 20}%`;
+        confetti.style.left = `${Math.random() * 100}vw`; // Use viewport width
+        confetti.style.top = `${Math.random() * 20}vh`; // Use viewport height
         confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
         confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
         

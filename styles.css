@@ -742,6 +742,14 @@ input[type="text"]:focus {
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* Confetti animation styles */
+.confetti {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    will-change: transform;
+}
+
 @keyframes confetti {
     0% {
         transform: translateY(0) rotate(0deg);
