@@ -156,28 +156,32 @@ class VoiceRecognition {    constructor() {
                 }
             }
         };        this.recognition.onerror = (event) => {
-            console.error('🎤 Erro no reconhecimento de voz:', event.error);
             this.isListening = false;
             
             // Para erros críticos, desabilita restart
             if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                console.error('🎤 Erro crítico no reconhecimento de voz:', event.error);
                 this.shouldRestart = false;
                 this.handleVoiceError(event.error);
                 return;
             }
             
-            // Para erros normais que não precisam de restart, apenas ignora
-            if (event.error === 'no-speech' || event.error === 'aborted') {
+            // Para 'no-speech' - é normal, continua escutando
+            if (event.error === 'no-speech') {
+                console.log('🎤 Nenhuma fala detectada - isso é normal, continuando...');
+                // Não define shouldRestart - deixa o comportamento padrão
+                return;
+            }
+            
+            // Para 'aborted' - parada intencional
+            if (event.error === 'aborted') {
+                console.log('🎤 Reconhecimento abortado intencionalmente');
                 this.shouldRestart = false;
-                if (event.error === 'no-speech') {
-                    console.log('🎤 Nenhuma fala detectada - isso é normal, continuando...');
-                } else {
-                    console.log('🎤 Reconhecimento abortado intencionalmente');
-                }
                 return;
             }
             
             // Para outros erros técnicos, permite restart
+            console.error('🎤 Erro técnico no reconhecimento de voz:', event.error);
             this.shouldRestart = true;
             console.log('🎤 Erro detectado, restart será feito no onend se necessário');
         };        this.recognition.onend = () => {
@@ -185,12 +189,13 @@ class VoiceRecognition {    constructor() {
             console.log('🎤 Reconhecimento de voz finalizado');
             
             // Para reconhecimento contínuo, sempre reinicia se o jogo estiver ativo
-            // A não ser que tenha sido parado intencionalmente ou atingido limite de tentativas
+            // A não ser que tenha sido explicitamente marcado para NÃO reiniciar
             if (this.gameActive && this.continuousMode && this.restartAttempts < this.maxRestartAttempts) {
-                // Se não foi marcado para NÃO reiniciar (erros críticos), sempre reinicia
-                const shouldContinue = this.shouldRestart !== false;
-                
-                if (shouldContinue) {
+                if (this.shouldRestart === false) {
+                    console.log('🎤 Não reiniciando devido a erro crítico ou parada intencional');
+                    this.updateVoiceStatus('idle');
+                } else {
+                    // Comportamento padrão: sempre reinicia para manter escuta contínua
                     this.restartAttempts++;
                     console.log(`🎤 Reiniciando reconhecimento contínuo ${this.restartAttempts}/${this.maxRestartAttempts}`);
                     
@@ -198,10 +203,7 @@ class VoiceRecognition {    constructor() {
                         if (this.gameActive && this.continuousMode) {
                             this.startRecognitionSafely();
                         }
-                    }, 1000); // Delay menor para melhor responsividade
-                } else {
-                    console.log('🎤 Não reiniciando devido a erro crítico');
-                    this.updateVoiceStatus('idle');
+                    }, 800); // Delay menor para melhor responsividade
                 }
             } else {
                 if (this.restartAttempts >= this.maxRestartAttempts) {
@@ -210,8 +212,8 @@ class VoiceRecognition {    constructor() {
                 this.updateVoiceStatus('idle');
             }
             
-            // Reset do flag de restart após uso
-            this.shouldRestart = false;
+            // Reset do flag para próxima iteração
+            this.shouldRestart = true;
         };
     }
     
