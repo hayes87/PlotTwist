@@ -707,16 +707,16 @@ const databaseMedium = [
         icon: 'fas fa-film',
         answer: 'Django Livre',
         clues: [
+            'Lançado em 2012.',
+            'Homenageia os filmes de faroeste espaguete, especialmente um filme de Sergio Corbucci.',
             'Um escravo liberto se une a um caçador de recompensas alemão para resgatar sua esposa.',
             'Eles enfrentam um cruel proprietário de plantação no sul dos Estados Unidos antes da Guerra Civil.',
-            'Dirigido por Quentin Tarantino.',
-            'Lançado em 2012.',
+            '"Eu gosto do jeito que você morre, rapaz."',
             'Estrelado por Jamie Foxx, Christoph Waltz e Leonardo DiCaprio.',
             'Christoph Waltz ganhou seu segundo Oscar de Melhor Ator Coadjuvante.',
+            'Dirigido por Quentin Tarantino.',
             'Tarantino ganhou o Oscar de Melhor Roteiro Original.',
-            'Homenageia os filmes de faroeste espaguete, especialmente "Django" de Sergio Corbucci.',
             'Calvin Candie, interpretado por DiCaprio, é o sádico dono da plantação Candyland.',
-            '"Eu gosto do jeito que você morre, rapaz."'
         ],
         alternatives: ['Django Unchained', 'Django']
     },
@@ -737,7 +737,7 @@ const databaseMedium = [
             'A série teve 6 temporadas, com a última focando em Claire após a saída de Spacey.',
             '"Democracia é tão superestimada."'
         ],
-        alternatives: ['House of Cards (EUA)']
+        alternatives: ['House of Cards']
     },
     {
         id: 40,

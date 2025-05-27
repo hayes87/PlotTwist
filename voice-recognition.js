@@ -166,30 +166,43 @@ class VoiceRecognition {    constructor() {
                 return;
             }
             
-            // Para outros erros, marca que deve restart no onend
-            if (event.error === 'aborted') {
-                // Se foi abortado intencionalmente, não reinicia
+            // Para erros normais que não precisam de restart, apenas ignora
+            if (event.error === 'no-speech' || event.error === 'aborted') {
                 this.shouldRestart = false;
-                console.log('🎤 Reconhecimento abortado intencionalmente');
-            } else {
-                // Para outros erros, permite restart
-                this.shouldRestart = true;
-                console.log('🎤 Erro detectado, restart será feito no onend se necessário');
+                if (event.error === 'no-speech') {
+                    console.log('🎤 Nenhuma fala detectada - isso é normal, continuando...');
+                } else {
+                    console.log('🎤 Reconhecimento abortado intencionalmente');
+                }
+                return;
             }
+            
+            // Para outros erros técnicos, permite restart
+            this.shouldRestart = true;
+            console.log('🎤 Erro detectado, restart será feito no onend se necessário');
         };        this.recognition.onend = () => {
             this.isListening = false;
             console.log('🎤 Reconhecimento de voz finalizado');
             
-            // Só reinicia se foi marcado para restart e as condições estão corretas
-            if (this.shouldRestart && this.gameActive && this.continuousMode && this.restartAttempts < this.maxRestartAttempts) {
-                this.restartAttempts++;
-                console.log(`🎤 Tentativa de restart ${this.restartAttempts}/${this.maxRestartAttempts}`);
+            // Para reconhecimento contínuo, sempre reinicia se o jogo estiver ativo
+            // A não ser que tenha sido parado intencionalmente ou atingido limite de tentativas
+            if (this.gameActive && this.continuousMode && this.restartAttempts < this.maxRestartAttempts) {
+                // Se não foi marcado para NÃO reiniciar (erros críticos), sempre reinicia
+                const shouldContinue = this.shouldRestart !== false;
                 
-                setTimeout(() => {
-                    if (this.gameActive && this.continuousMode && this.shouldRestart) {
-                        this.startRecognitionSafely();
-                    }
-                }, 1500); // Aumenta o delay para dar tempo de estabilizar
+                if (shouldContinue) {
+                    this.restartAttempts++;
+                    console.log(`🎤 Reiniciando reconhecimento contínuo ${this.restartAttempts}/${this.maxRestartAttempts}`);
+                    
+                    setTimeout(() => {
+                        if (this.gameActive && this.continuousMode) {
+                            this.startRecognitionSafely();
+                        }
+                    }, 1000); // Delay menor para melhor responsividade
+                } else {
+                    console.log('🎤 Não reiniciando devido a erro crítico');
+                    this.updateVoiceStatus('idle');
+                }
             } else {
                 if (this.restartAttempts >= this.maxRestartAttempts) {
                     console.log('🎤 Máximo de tentativas de restart atingido');
