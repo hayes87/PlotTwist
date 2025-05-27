@@ -516,11 +516,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
       // Botões de seleção de dificuldade (modo escolha livre)
     const difficultySelectionButtons = document.querySelectorAll('.difficulty-selection-btn');
-    difficultySelectionButtons.forEach(button => {
-        button.addEventListener('click', () => {
+    difficultySelectionButtons.forEach(button => {        button.addEventListener('click', () => {
             playButtonClickSound();
             const selectedDifficulty = button.dataset.difficulty;
-            const points = parseInt(button.dataset.points);
+            const points = parseFloat(button.dataset.points);
             
             // Define a dificuldade e multiplicador da rodada atual
             gameState.currentRoundDifficulty = selectedDifficulty;
