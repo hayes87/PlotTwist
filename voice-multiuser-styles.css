@@ -1,0 +1,420 @@
+/* Estilos específicos para modo multi-usuário */
+.voice-btn.group-mode {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    animation: groupPulse 2s infinite;
+    border: 2px solid #fff;
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+}
+
+.voice-btn.group-mode:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 107, 107, 0.7);
+}
+
+@keyframes groupPulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        border-color: #ff6b6b;
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(78, 205, 196, 0.7);
+        border-color: #4ecdc4;
+    }
+}
+
+/* Indicador de modo grupo */
+.voice-group-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Estilos para notificações de filtro */
+.notification.filtered {
+    background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+    border-left: 4px solid #e17055;
+}
+
+.notification.filtered .icon {
+    color: #e17055;
+}
+
+/* Estilos para configurações de grupo */
+.group-settings {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.group-settings h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.group-settings .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.group-settings .setting-item:last-child {
+    border-bottom: none;
+}
+
+.group-settings label {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.group-settings input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Animações para feedback visual */
+.voice-processing {
+    background: linear-gradient(90deg, #00b894, #00a085);
+    animation: processing 1.5s infinite;
+}
+
+@keyframes processing {
+    0%, 100% {
+        background: linear-gradient(90deg, #00b894, #00a085);
+    }
+    50% {
+        background: linear-gradient(90deg, #00a085, #00b894);
+    }
+}
+
+/* Estilos para controles avançados */
+.voice-advanced-controls {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+.voice-advanced-controls:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.voice-advanced-controls h5 {
+    margin: 0 0 10px 0;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    padding: 5px 0;
+}
+
+.setting-label {
+    font-size: 13px;
+    color: #6c757d;
+    flex: 1;
+}
+
+.setting-control {
+    flex: 0 0 auto;
+}
+
+.range-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 120px;
+}
+
+.range-container input[type="range"] {
+    flex: 1;
+    height: 6px;
+    background: #dee2e6;
+    border-radius: 3px;
+    outline: none;
+}
+
+.range-container input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.range-value {
+    font-size: 11px;
+    color: #6c757d;
+    min-width: 35px;
+    text-align: center;
+}
+
+/* Indicadores de status */
+.voice-status-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 1000;
+    display: none;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.voice-status-bar.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Estilos para palavras de ativação */
+.activation-words {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+
+.activation-words .words-list {
+    font-family: monospace;
+    font-size: 12px;
+    color: #1976d2;
+    margin-top: 5px;
+}
+
+.activation-words .word-tag {
+    background: #2196f3;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 11px;
+    margin: 2px;
+    display: inline-block;
+}
+
+/* Toggle switch para modo grupo */
+.group-mode-toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.group-mode-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+/* Animação para contagem regressiva */
+.cooldown-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4757;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: countdown 1s linear infinite;
+}
+
+@keyframes countdown {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Controles compactos para o jogo */
+.multiuser-controls-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 10px;
+}
+
+.multiuser-toggle-compact {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.multiuser-toggle-compact input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.multiuser-slider-compact {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 26px;
+}
+
+.multiuser-slider-compact:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .multiuser-slider-compact {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+}
+
+input:checked + .multiuser-slider-compact:before {
+    transform: translateX(24px);
+}
+
+.multiuser-label-compact {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+}
+
+.multiuser-status-compact {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    color: #666;
+}
+
+.multiuser-status-compact.active {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    color: white;
+    animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsivo para telas menores */
+@media (max-width: 768px) {
+    .multiuser-controls-compact {
+        gap: 5px;
+        margin: 0 5px;
+    }
+    
+    .multiuser-toggle-compact {
+        width: 40px;
+        height: 22px;
+    }
+    
+    .multiuser-slider-compact:before {
+        height: 16px;
+        width: 16px;
+    }
+    
+    input:checked + .multiuser-slider-compact:before {
+        transform: translateX(18px);
+    }
+    
+    .multiuser-label-compact {
+        font-size: 10px;
+    }
+    
+    .multiuser-status-compact {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+}

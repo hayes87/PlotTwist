@@ -4,7 +4,7 @@ class VoiceRecognition {    constructor() {
         this.isListening = false;
         this.isSupported = false;
         this.lastResult = '';
-        this.confidenceThreshold = 0.1; // Threshold muito baixo - aceita quase tudo
+        this.confidenceThreshold = 0.4; // Threshold mais alto para ambientes com ruído
         this.autoSubmit = true; // Sempre submete automaticamente
         this.alwaysSubmit = true; // Nova opção: sempre submete independente da confiança
         this.language = 'pt-BR';
@@ -14,6 +14,21 @@ class VoiceRecognition {    constructor() {
         this.restartAttempts = 0; // Conta tentativas de restart para evitar loop infinito
         this.maxRestartAttempts = 3; // Máximo de tentativas antes de parar
         this.shouldRestart = false; // Controla se deve reiniciar após erro
+          // Configurações para ambiente multi-usuário
+        this.groupMode = false; // Modo para múltiplas pessoas
+        this.activationWords = ['resposta', 'eu sei', 'é o', 'é a', 'eh o', 'eh a']; // Palavras de ativação
+        this.useActivationWord = false; // Usar palavra de ativação
+        this.voiceTimeout = 3000; // Timeout para considerar fim da fala
+        this.minSpeechLength = 3; // Mínimo de caracteres para considerar válido
+        this.lastSubmissionTime = 0; // Controle de spam
+        this.submissionCooldown = 3000; // Cooldown entre submissões (aumentado)
+        this.maxAnswerLength = 50; // Máximo de caracteres para respostas
+        this.noiseFilterLevel = 0.7; // Nível de filtro de ruído (0.5-0.9)
+        this.speakerChangeDelay = 1000; // Delay para mudança de falante
+        this.contextualFiltering = true; // Filtragem contextual ativada
+        this.lastSpeakerPattern = null; // Padrão do último falante
+        this.consecutiveNoiseCount = 0; // Contador de ruído consecutivo
+        this.maxConsecutiveNoise = 3; // Máximo de ruído antes de ajustar sensibilidade
         
         // Estado da interface
         this.voiceButton = null;
@@ -134,18 +149,22 @@ class VoiceRecognition {    constructor() {
             
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 const transcript = event.results[i][0].transcript;
-                const confidence = event.results[i][0].confidence;                  if (event.results[i].isFinal) {
+                const confidence = event.results[i][0].confidence;                if (event.results[i].isFinal) {
                     // Resultado final
                     finalTranscript += transcript.trim();
                     this.lastResult = finalTranscript;
                     
-                    // SEMPRE mostra e testa a tentativa detectada
-                    this.handleVoiceAttempt(finalTranscript, confidence);
-                    
-                    // SEMPRE submete se tiver algum texto (removido threshold de confiança)
-                    if (finalTranscript.length > 1) { // Só precisa ter pelo menos 2 caracteres
-                        console.log('🎤 Resultado final detectado:', finalTranscript);
+                    // Aplica filtragem multi-usuário
+                    if (this.shouldProcessSpeech(finalTranscript, confidence)) {
+                        // SEMPRE mostra e testa a tentativa detectada
+                        this.handleVoiceAttempt(finalTranscript, confidence);
+                        
+                        // SEMPRE submete se passou pelos filtros
+                        console.log('🎤 Resultado final detectado após filtros:', finalTranscript);
                         this.handleVoiceResult(finalTranscript, confidence);
+                    } else {
+                        console.log('🎤 Resultado filtrado:', finalTranscript, 'Confiança:', confidence);
+                        this.handleFilteredSpeech(finalTranscript, confidence);
                     }
                 }else {
                     // Resultado intermediário
@@ -300,11 +319,22 @@ class VoiceRecognition {    constructor() {
                     <label for="voice-confidence">Confianca Minima:</label>
                     <input type="range" id="voice-confidence" min="0.2" max="0.8" step="0.1" value="${this.confidenceThreshold}">
                     <span id="confidence-value">${Math.round(this.confidenceThreshold * 100)}%</span>
-                </div>
-                <div class="voice-option">
+                </div>                <div class="voice-option">
                     <label>
                         <input type="checkbox" id="voice-continuous" ${this.continuousMode ? 'checked' : ''}>
                         Reconhecimento contínuo durante o jogo
+                    </label>
+                </div>
+                <div class="voice-option">
+                    <label>
+                        <input type="checkbox" id="voice-group-mode" ${this.groupMode ? 'checked' : ''}>
+                        Modo grupo (filtros rigorosos para múltiplas pessoas)
+                    </label>
+                </div>
+                <div class="voice-option">
+                    <label>
+                        <input type="checkbox" id="voice-activation-word" ${this.useActivationWord ? 'checked' : ''}>
+                        Usar palavras de ativação ("resposta", "eu sei", etc.)
                     </label>
                 </div>
                 <div class="voice-status-info">
@@ -807,11 +837,220 @@ class VoiceRecognition {    constructor() {
     isCurrentlyListening() {
         return this.isListening;
     }
-    
-    // Método público para obter o último resultado
+      // Método público para obter o último resultado
     getLastResult() {
         return this.lastResult;
     }
+    
+    // ===== MÉTODOS DE FILTRAGEM MULTI-USUÁRIO =====
+    
+    shouldProcessSpeech(transcript, confidence) {
+        const now = Date.now();
+        
+        // 1. Filtro básico de comprimento
+        if (transcript.length < this.minSpeechLength) {
+            console.log('🎤 Filtro: texto muito curto');
+            return false;
+        }
+        
+        // 2. Filtro de comprimento máximo (evita frases muito longas)
+        if (transcript.length > this.maxAnswerLength) {
+            console.log('🎤 Filtro: texto muito longo');
+            return false;
+        }
+        
+        // 3. Cooldown entre submissões
+        if (now - this.lastSubmissionTime < this.submissionCooldown) {
+            console.log('🎤 Filtro: cooldown ativo');
+            return false;
+        }
+        
+        // 4. Filtro de confiança adaptativo
+        const adaptiveThreshold = this.getAdaptiveConfidenceThreshold();
+        if (confidence < adaptiveThreshold) {
+            console.log(`🎤 Filtro: confiança baixa (${confidence.toFixed(2)} < ${adaptiveThreshold.toFixed(2)})`);
+            this.consecutiveNoiseCount++;
+            return false;
+        }
+        
+        // 5. Filtro de palavras de ativação (se habilitado)
+        if (this.useActivationWord && !this.hasActivationWord(transcript)) {
+            console.log('🎤 Filtro: palavra de ativação não encontrada');
+            return false;
+        }
+        
+        // 6. Filtro contextual (evita repetições e ruído)
+        if (!this.passesContextualFilter(transcript)) {
+            console.log('🎤 Filtro: não passou no filtro contextual');
+            return false;
+        }
+        
+        // Se chegou até aqui, pode processar
+        this.lastSubmissionTime = now;
+        this.consecutiveNoiseCount = 0; // Reset contador de ruído
+        return true;
+    }
+    
+    getAdaptiveConfidenceThreshold() {
+        // Aumenta o threshold se houver muito ruído consecutivo
+        let threshold = this.confidenceThreshold;
+        
+        if (this.consecutiveNoiseCount >= this.maxConsecutiveNoise) {
+            threshold = Math.min(0.9, threshold + 0.2); // Aumenta mas não passa de 90%
+            console.log('🎤 Threshold adaptativo aumentado para:', threshold.toFixed(2));
+        }
+        
+        return threshold;
+    }
+    
+    hasActivationWord(transcript) {
+        const lowerTranscript = transcript.toLowerCase();
+        return this.activationWords.some(word => 
+            lowerTranscript.includes(word.toLowerCase())
+        );
+    }
+    
+    passesContextualFilter(transcript) {
+        const normalizedTranscript = this.normalizeText(transcript);
+        
+        // 1. Evita repetições muito próximas
+        if (this.lastResult && this.isSimilarToLastResult(normalizedTranscript)) {
+            return false;
+        }
+        
+        // 2. Filtro de ruído comum
+        if (this.isCommonNoise(normalizedTranscript)) {
+            return false;
+        }
+        
+        // 3. Filtro de palavras muito curtas
+        const words = normalizedTranscript.split(' ').filter(w => w.length > 1);
+        if (words.length === 0) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    normalizeText(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\sáéíóúâêîôûàèìòùãõç]/g, '') // Remove pontuação
+            .replace(/\s+/g, ' ') // Normaliza espaços
+            .trim();
+    }
+    
+    isSimilarToLastResult(transcript) {
+        if (!this.lastResult) return false;
+        
+        const lastNormalized = this.normalizeText(this.lastResult);
+        const currentNormalized = this.normalizeText(transcript);
+        
+        // Verifica similaridade simples
+        return lastNormalized === currentNormalized || 
+               this.calculateSimilarity(lastNormalized, currentNormalized) > 0.8;
+    }
+    
+    calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        
+        if (longer.length === 0) return 1.0;
+        
+        const editDistance = this.levenshteinDistance(longer, shorter);
+        return (longer.length - editDistance) / longer.length;
+    }
+    
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+    
+    isCommonNoise(transcript) {
+        const noisePatterns = [
+            /^(ah|eh|uhm|hmm|hum|ahn)$/i,
+            /^(não|sim|ok|tá|né)$/i,
+            /^(oi|ola|tchau|bye)$/i,
+            /^[aeiou]{1,3}$/i, // Vogais isoladas
+            /^\s*$/,  // Apenas espaços
+        ];
+        
+        return noisePatterns.some(pattern => pattern.test(transcript));
+    }
+    
+    handleFilteredSpeech(transcript, confidence) {
+        // Mostra feedback sutil para fala filtrada (sem submeter)
+        console.log(`🎤 Filtrado: "${transcript}" (${confidence.toFixed(2)})`);
+        
+        if (window.showNotification && confidence >= 0.5) {
+            // Só mostra se tiver confiança razoável para evitar spam
+            const confidencePercent = Math.round(confidence * 100);
+            showNotification(`🎤 Ignorado: "${transcript}" (${confidencePercent}%)`, 'info', 1500);
+        }
+    }
+    
+    // Método para ativar/desativar modo grupo
+    setGroupMode(enabled) {
+        this.groupMode = enabled;
+        
+        if (enabled) {
+            // Configurações mais restritivas para grupo
+            this.confidenceThreshold = Math.max(0.6, this.confidenceThreshold);
+            this.submissionCooldown = 3000;
+            this.useActivationWord = true;
+            console.log('🎤 Modo grupo ativado - filtros mais rigorosos');
+        } else {
+            // Configurações mais permissivas para uso individual
+            this.confidenceThreshold = Math.min(0.4, this.confidenceThreshold);
+            this.submissionCooldown = 1000;
+            this.useActivationWord = false;
+            console.log('🎤 Modo individual ativado - filtros mais permissivos');
+        }
+        
+        this.updateGroupModeUI();
+    }
+    
+    updateGroupModeUI() {
+        const groupModeToggle = document.getElementById('voice-group-mode');
+        if (groupModeToggle) {
+            groupModeToggle.checked = this.groupMode;
+        }
+        
+        // Atualiza visual do botão de voz
+        if (this.voiceButton) {
+            if (this.groupMode) {
+                this.voiceButton.classList.add('group-mode');
+                this.voiceButton.title = 'Modo grupo - diga uma palavra de ativação antes da resposta';
+            } else {
+                this.voiceButton.classList.remove('group-mode');
+                this.voiceButton.title = 'Reconhecimento de voz ativo - fale naturalmente';
+            }
+        }
+    }
+    
+    // ===== FIM DOS MÉTODOS DE FILTRAGEM =====
 }
 
 // Instância global do reconhecimento de voz
@@ -873,3 +1112,213 @@ window.isVoiceActive = isVoiceActive;
 window.getVoiceStatus = getVoiceStatus;
 window.requestVoiceDetection = requestVoiceDetection;
 window.cleanVoiceState = cleanVoiceState;
+
+// ===== MÉTODOS DE FILTRAGEM MULTI-USUÁRIO =====
+    
+    shouldProcessSpeech(transcript, confidence) {
+        const now = Date.now();
+        
+        // 1. Filtro básico de comprimento
+        if (transcript.length < this.minSpeechLength) {
+            console.log('🎤 Filtro: texto muito curto');
+            return false;
+        }
+        
+        // 2. Filtro de comprimento máximo (evita frases muito longas)
+        if (transcript.length > this.maxAnswerLength) {
+            console.log('🎤 Filtro: texto muito longo');
+            return false;
+        }
+        
+        // 3. Cooldown entre submissões
+        if (now - this.lastSubmissionTime < this.submissionCooldown) {
+            console.log('🎤 Filtro: cooldown ativo');
+            return false;
+        }
+        
+        // 4. Filtro de confiança adaptativo
+        const adaptiveThreshold = this.getAdaptiveConfidenceThreshold();
+        if (confidence < adaptiveThreshold) {
+            console.log(`🎤 Filtro: confiança baixa (${confidence.toFixed(2)} < ${adaptiveThreshold.toFixed(2)})`);
+            this.consecutiveNoiseCount++;
+            return false;
+        }
+        
+        // 5. Filtro de palavras de ativação (se habilitado)
+        if (this.useActivationWord && !this.hasActivationWord(transcript)) {
+            console.log('🎤 Filtro: palavra de ativação não encontrada');
+            return false;
+        }
+        
+        // 6. Filtro contextual (evita repetições e ruído)
+        if (!this.passesContextualFilter(transcript)) {
+            console.log('🎤 Filtro: não passou no filtro contextual');
+            return false;
+        }
+        
+        // Se chegou até aqui, pode processar
+        this.lastSubmissionTime = now;
+        this.consecutiveNoiseCount = 0; // Reset contador de ruído
+        return true;
+    }
+    
+    getAdaptiveConfidenceThreshold() {
+        // Aumenta o threshold se houver muito ruído consecutivo
+        let threshold = this.confidenceThreshold;
+        
+        if (this.consecutiveNoiseCount >= this.maxConsecutiveNoise) {
+            threshold = Math.min(0.9, threshold + 0.2); // Aumenta mas não passa de 90%
+            console.log('🎤 Threshold adaptativo aumentado para:', threshold.toFixed(2));
+        }
+        
+        return threshold;
+    }
+    
+    hasActivationWord(transcript) {
+        const lowerTranscript = transcript.toLowerCase();
+        return this.activationWords.some(word => 
+            lowerTranscript.includes(word.toLowerCase())
+        );
+    }
+    
+    passesContextualFilter(transcript) {
+        const normalizedTranscript = this.normalizeText(transcript);
+        
+        // 1. Evita repetições muito próximas
+        if (this.lastResult && this.isSimilarToLastResult(normalizedTranscript)) {
+            return false;
+        }
+        
+        // 2. Filtro de ruído comum
+        if (this.isCommonNoise(normalizedTranscript)) {
+            return false;
+        }
+        
+        // 3. Filtro de palavras muito curtas
+        const words = normalizedTranscript.split(' ').filter(w => w.length > 1);
+        if (words.length === 0) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    normalizeText(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\sáéíóúâêîôûàèìòùãõç]/g, '') // Remove pontuação
+            .replace(/\s+/g, ' ') // Normaliza espaços
+            .trim();
+    }
+    
+    isSimilarToLastResult(transcript) {
+        if (!this.lastResult) return false;
+        
+        const lastNormalized = this.normalizeText(this.lastResult);
+        const currentNormalized = this.normalizeText(transcript);
+        
+        // Verifica similaridade simples
+        return lastNormalized === currentNormalized || 
+               this.calculateSimilarity(lastNormalized, currentNormalized) > 0.8;
+    }
+    
+    calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        
+        if (longer.length === 0) return 1.0;
+        
+        const editDistance = this.levenshteinDistance(longer, shorter);
+        return (longer.length - editDistance) / longer.length;
+    }
+    
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+    
+    isCommonNoise(transcript) {
+        const noisePatterns = [
+            /^(ah|eh|uhm|hmm|hum|ahn)$/i,
+            /^(não|sim|ok|tá|né)$/i,
+            /^(oi|ola|tchau|bye)$/i,
+            /^[aeiou]{1,3}$/i, // Vogais isoladas
+            /^\s*$/,  // Apenas espaços
+        ];
+        
+        return noisePatterns.some(pattern => pattern.test(transcript));
+    }
+    
+    handleFilteredSpeech(transcript, confidence) {
+        // Mostra feedback sutil para fala filtrada (sem submeter)
+        console.log(`🎤 Filtrado: "${transcript}" (${confidence.toFixed(2)})`);
+        
+        if (window.showNotification && confidence >= 0.5) {
+            // Só mostra se tiver confiança razoável para evitar spam
+            const confidencePercent = Math.round(confidence * 100);
+            showNotification(`🎤 Ignorado: "${transcript}" (${confidencePercent}%)`, 'info', 1500);
+        }
+    }
+    
+    // Método para ativar/desativar modo grupo
+    setGroupMode(enabled) {
+        this.groupMode = enabled;
+        
+        if (enabled) {
+            // Configurações mais restritivas para grupo
+            this.confidenceThreshold = Math.max(0.6, this.confidenceThreshold);
+            this.submissionCooldown = 3000;
+            this.useActivationWord = true;
+            console.log('🎤 Modo grupo ativado - filtros mais rigorosos');
+        } else {
+            // Configurações mais permissivas para uso individual
+            this.confidenceThreshold = Math.min(0.4, this.confidenceThreshold);
+            this.submissionCooldown = 1000;
+            this.useActivationWord = false;
+            console.log('🎤 Modo individual ativado - filtros mais permissivos');
+        }
+        
+        this.updateGroupModeUI();
+    }
+    
+    updateGroupModeUI() {
+        const groupModeToggle = document.getElementById('voice-group-mode');
+        if (groupModeToggle) {
+            groupModeToggle.checked = this.groupMode;
+        }
+        
+        // Atualiza visual do botão de voz
+        if (this.voiceButton) {
+            if (this.groupMode) {
+                this.voiceButton.classList.add('group-mode');
+                this.voiceButton.title = 'Modo grupo - diga uma palavra de ativação antes da resposta';
+            } else {
+                this.voiceButton.classList.remove('group-mode');
+                this.voiceButton.title = 'Reconhecimento de voz ativo - fale naturalmente';
+            }
+        }
+    }
+    
+    // ===== FIM DOS MÉTODOS DE FILTRAGEM =====

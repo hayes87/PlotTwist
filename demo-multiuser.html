@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - Teste Modo Multi-Usuário</title>
+    
+    <!-- CSS Original -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="voice-styles.css">
+    <link rel="stylesheet" href="voice-multiuser-styles.css">
+    
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Estilos de demonstração */
+        .demo-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .demo-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .demo-section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h4 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .feature-list li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .demo-controls {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .btn-demo {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-demo:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-demo.danger {
+            background: #dc3545;
+        }
+        
+        .btn-demo.danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-demo.success {
+            background: #28a745;
+        }
+        
+        .btn-demo.success:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>🎤 Sistema de Reconhecimento de Voz Multi-Usuário</h1>
+        <p>Demonstração das funcionalidades avançadas para ambientes com múltiplas pessoas</p>
+    </div>
+
+    <div class="container">
+        <!-- Painel de controle será inserido automaticamente aqui -->
+        
+        <div class="demo-section">
+            <h3>🎯 Funcionalidades do Modo Multi-Usuário</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔧 Filtros Inteligentes</h4>
+                    <ul class="feature-list">
+                        <li>Threshold de confiança adaptativo</li>
+                        <li>Filtragem de ruído comum</li>
+                        <li>Controle de comprimento de texto</li>
+                        <li>Detecção de repetições</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⏱️ Controle Temporal</h4>
+                    <ul class="feature-list">
+                        <li>Cooldown de 3 segundos entre submissões</li>
+                        <li>Timeout para mudança de falante</li>
+                        <li>Prevenção de spam</li>
+                        <li>Gestão de tentativas consecutivas</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🎤 Palavras de Ativação</h4>
+                    <ul class="feature-list">
+                        <li>"resposta" - para dar uma resposta</li>
+                        <li>"eu sei" - para indicar conhecimento</li>
+                        <li>"é o" / "é a" - para respostas diretas</li>
+                        <li>Configurável e extensível</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🧠 Algoritmos Avançados</h4>
+                    <ul class="feature-list">
+                        <li>Similarity matching (Levenshtein)</li>
+                        <li>Normalização de texto inteligente</li>
+                        <li>Padrões de detecção de ruído</li>
+                        <li>Análise contextual</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>🎮 Simulação de Jogo</h3>
+            <div class="game-simulation">
+                <div class="answer-container">
+                    <input type="text" id="answer-input" placeholder="Digite ou fale sua resposta...">
+                    <button id="submit-btn" class="btn-demo">Enviar</button>
+                </div>
+                
+                <div class="demo-controls">
+                    <h4>Controles de Demonstração:</h4>
+                    <button class="btn-demo success" onclick="simulateGameStart()">
+                        🎯 Iniciar Modo Jogo
+                    </button>
+                    <button class="btn-demo danger" onclick="simulateGameStop()">
+                        ⏹️ Parar Modo Jogo
+                    </button>
+                    <button class="btn-demo" onclick="testVoiceRecognition()">
+                        🎤 Testar Reconhecimento
+                    </button>
+                    <button class="btn-demo" onclick="showStats()">
+                        📊 Mostrar Estatísticas
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>📋 Como Usar em um Grupo</h3>
+            <div class="instructions">
+                <ol>
+                    <li><strong>Ative o Modo Multi-Usuário:</strong> Use o toggle no topo da página</li>
+                    <li><strong>Configure Palavras de Ativação:</strong> Diga uma palavra de ativação antes da resposta</li>
+                    <li><strong>Fale Claramente:</strong> O sistema precisa de boa qualidade de áudio</li>
+                    <li><strong>Aguarde o Cooldown:</strong> Espere 3 segundos entre respostas diferentes</li>
+                    <li><strong>Use Frases Curtas:</strong> Máximo de 50 caracteres para melhor precisão</li>
+                </ol>
+                
+                <div class="example-usage">
+                    <h4>Exemplos de Uso:</h4>
+                    <div class="examples">
+                        <div class="example-good">
+                            <strong>✅ Bom:</strong> "Resposta Batman" ou "Eu sei é o Superman"
+                        </div>
+                        <div class="example-bad">
+                            <strong>❌ Evitar:</strong> "Batman" (sem palavra de ativação) ou frases muito longas
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>⚙️ Configurações Técnicas</h3>
+            <div class="tech-config">
+                <p><strong>Threshold de Confiança:</strong> 60% (adaptativo até 90%)</p>
+                <p><strong>Cooldown:</strong> 3000ms entre submissões</p>
+                <p><strong>Comprimento Mínimo:</strong> 3 caracteres</p>
+                <p><strong>Comprimento Máximo:</strong> 50 caracteres</p>
+                <p><strong>Tentativas de Restart:</strong> 3 máximo</p>
+                <p><strong>Filtro de Ruído:</strong> Padrões regex para interjeições</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script src="voice-recognition.js"></script>
+    <script src="voice-recognition-multiuser.js"></script>
+    <script src="multiuser-controls.js"></script>
+    
+    <script>
+        // Simulações para demonstração
+        
+        function simulateGameStart() {
+            console.log('🎮 Simulando início do jogo...');
+            
+            // Simula o estado do jogo
+            window.gameState = {
+                isProcessingAnswer: false,
+                currentRound: 1,
+                maxRounds: 10
+            };
+            
+            // Inicia reconhecimento se disponível
+            if (window.voiceRecognition && window.voiceRecognition.startGameListening) {
+                window.voiceRecognition.startGameListening();
+                showNotification('🎮 Jogo iniciado! Reconhecimento de voz ativo.', 'success');
+            } else {
+                showNotification('🎤 Sistema de voz não disponível ainda.', 'warning');
+            }
+        }
+        
+        function simulateGameStop() {
+            console.log('🎮 Simulando parada do jogo...');
+            
+            if (window.voiceRecognition && window.voiceRecognition.stopGameListening) {
+                window.voiceRecognition.stopGameListening();
+                showNotification('🎮 Jogo parado. Reconhecimento de voz desativado.', 'info');
+            }
+            
+            window.gameState = null;
+        }
+        
+        function testVoiceRecognition() {
+            if (window.voiceRecognition) {
+                const status = window.voiceRecognition.isCurrentlyListening() ? 'ouvindo' : 'inativo';
+                const mode = window.voiceRecognitionMultiUser ? 'multi-usuário' : 'padrão';
+                showNotification(`🎤 Status: ${status} | Modo: ${mode}`, 'info');
+            } else {
+                showNotification('🎤 Sistema de voz não inicializado.', 'warning');
+            }
+        }
+        
+        function showStats() {
+            if (window.voiceRecognition) {
+                const stats = {
+                    isListening: window.voiceRecognition.isCurrentlyListening(),
+                    isSupported: window.voiceRecognition.isSupported,
+                    gameActive: window.voiceRecognition.gameActive,
+                    lastResult: window.voiceRecognition.getLastResult() || 'Nenhum',
+                    mode: window.voiceRecognitionMultiUser ? 'Multi-Usuário' : 'Padrão'
+                };
+                
+                console.log('📊 Estatísticas do Sistema de Voz:', stats);
+                showNotification('📊 Estatísticas exibidas no console.', 'info');
+            }
+        }
+        
+        // Função de submissão simulada
+        function submitAnswer() {
+            const input = document.getElementById('answer-input');
+            const answer = input.value.trim();
+            
+            if (answer) {
+                console.log('📝 Resposta submetida:', answer);
+                showNotification(`📝 Resposta: "${answer}"`, 'success');
+                
+                // Simula processamento
+                if (window.gameState) {
+                    window.gameState.isProcessingAnswer = true;
+                    setTimeout(() => {
+                        window.gameState.isProcessingAnswer = false;
+                        input.value = '';
+                    }, 1000);
+                }
+            }
+        }
+        
+        // Função de notificação simples
+        function showNotification(message, type = 'info', duration = 3000) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#007bff'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-size: 14px;
+                max-width: 90%;
+                text-align: center;
+                animation: slideInDown 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutUp 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+        
+        // Torna a função disponível globalmente
+        window.showNotification = showNotification;
+        window.submitAnswer = submitAnswer;
+        
+        // Event listener para o botão de enviar
+        document.getElementById('submit-btn').addEventListener('click', submitAnswer);
+        
+        // Event listener para Enter no input
+        document.getElementById('answer-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+        
+        console.log('🎤 Demonstração multi-usuário carregada!');
+    </script>
+    
+    <style>
+        @keyframes slideInDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutUp {
+            from {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+        }
+        
+        .notification {
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .instructions ol {
+            line-height: 1.6;
+        }
+        
+        .instructions ol li {
+            margin-bottom: 8px;
+        }
+        
+        .example-usage {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .example-good, .example-bad {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .example-good {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .example-bad {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .tech-config {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            line-height: 1.8;
+        }
+        
+        .answer-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        #answer-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        #answer-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+        }
+    </style>
+</body>
+</html>
