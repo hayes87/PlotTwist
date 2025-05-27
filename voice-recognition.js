@@ -10,9 +10,8 @@ class VoiceRecognition {    constructor() {
         this.language = 'pt-BR';
         this.continuousMode = true; // Sempre escutando
         this.gameActive = false; // Controla se o jogo está ativo
-        this.microphonePermissionGranted = false; // Controla se já temos permissão do microfone
-        this.restartAttempts = 0; // Conta tentativas de restart para evitar loop infinito
-        this.maxRestartAttempts = 3; // Máximo de tentativas antes de parar
+        this.microphonePermissionGranted = false; // Controla se já temos permissão do microfone        this.restartAttempts = 0; // Conta tentativas de restart para evitar loop infinito
+        this.maxRestartAttempts = 10; // Máximo de tentativas antes de parar (aumentado)
         this.shouldRestart = false; // Controla se deve reiniciar após erro
           // Configurações para ambiente multi-usuário
         this.groupMode = false; // Modo para múltiplas pessoas
@@ -133,10 +132,10 @@ class VoiceRecognition {    constructor() {
         this.recognition.interimResults = true;
         this.recognition.lang = this.language;
         this.recognition.maxAlternatives = 3;
-        
-        // Event listeners
+          // Event listeners
         this.recognition.onstart = () => {
             this.isListening = true;
+            this.restartAttempts = 0; // Reset contador quando conseguir iniciar com sucesso
             this.updateVoiceStatus('listening');
             console.log('🎤 Reconhecimento de voz iniciado (modo contínuo)');
         };
@@ -162,6 +161,9 @@ class VoiceRecognition {    constructor() {
                         // SEMPRE submete se passou pelos filtros
                         console.log('🎤 Resultado final detectado após filtros:', finalTranscript);
                         this.handleVoiceResult(finalTranscript, confidence);
+                        
+                        // Reset restart attempts após sucesso para evitar restarts desnecessários
+                        this.restartAttempts = 0;
                     } else {
                         console.log('🎤 Resultado filtrado:', finalTranscript, 'Confiança:', confidence);
                         this.handleFilteredSpeech(finalTranscript, confidence);
@@ -183,12 +185,11 @@ class VoiceRecognition {    constructor() {
                 this.shouldRestart = false;
                 this.handleVoiceError(event.error);
                 return;
-            }
-            
-            // Para 'no-speech' - é normal, continua escutando
+            }            // Para 'no-speech' - é normal, continua escutando
             if (event.error === 'no-speech') {
                 console.log('🎤 Nenhuma fala detectada - isso é normal, continuando...');
-                // Não define shouldRestart - deixa o comportamento padrão
+                this.shouldRestart = true; // Continua ouvindo normalmente para no-speech
+                this.isNoSpeechRestart = true; // Flag especial para não incrementar contador
                 return;
             }
             
@@ -196,6 +197,7 @@ class VoiceRecognition {    constructor() {
             if (event.error === 'aborted') {
                 console.log('🎤 Reconhecimento abortado intencionalmente');
                 this.shouldRestart = false;
+                this.isNoSpeechRestart = false;
                 return;
             }
             
@@ -208,25 +210,49 @@ class VoiceRecognition {    constructor() {
             console.log('🎤 Reconhecimento de voz finalizado');
             
             // Para reconhecimento contínuo, sempre reinicia se o jogo estiver ativo
-            // A não ser que tenha sido explicitamente marcado para NÃO reiniciar
             if (this.gameActive && this.continuousMode && this.restartAttempts < this.maxRestartAttempts) {
-                if (this.shouldRestart === false) {
-                    console.log('🎤 Não reiniciando devido a erro crítico ou parada intencional');
-                    this.updateVoiceStatus('idle');
-                } else {
-                    // Comportamento padrão: sempre reinicia para manter escuta contínua
-                    this.restartAttempts++;
-                    console.log(`🎤 Reiniciando reconhecimento contínuo ${this.restartAttempts}/${this.maxRestartAttempts}`);
+                // Verifica se é um restart de no-speech (situação normal)
+                if (this.isNoSpeechRestart) {
+                    console.log('🎤 Restart normal (no-speech) - situação normal, sem incrementar tentativas');
+                    // Para situações normais como "no-speech", reinicia sem contar como erro
+                    const delay = 500; // Delay menor para situações normais
+                    console.log(`🎤 Agendando restart normal em ${delay}ms...`);
+                    
+                    // Reset da flag
+                    this.isNoSpeechRestart = false;
                     
                     setTimeout(() => {
-                        if (this.gameActive && this.continuousMode) {
+                        if (this.gameActive && this.continuousMode && !this.isListening) {
+                            console.log('🎤 Executando restart normal do reconhecimento...');
                             this.startRecognitionSafely();
+                        } else {
+                            console.log('🎤 Cancelando restart - condições mudaram');
                         }
-                    }, 800); // Delay menor para melhor responsividade
-                }
-            } else {
+                    }, delay);
+                } else if (this.shouldRestart) {
+                    // Comportamento para erros reais: conta tentativas e usa delay progressivo
+                    this.restartAttempts++;
+                    console.log(`🎤 Reiniciando reconhecimento após erro ${this.restartAttempts}/${this.maxRestartAttempts}`);
+                      // Restart mais rápido e confiável
+                    const delay = Math.min(1000 + (this.restartAttempts * 500), 3000); // Delay progressivo
+                    console.log(`🎤 Agendando restart em ${delay}ms...`);
+                    
+                    setTimeout(() => {
+                        if (this.gameActive && this.continuousMode && !this.isListening) {
+                            console.log('🎤 Executando restart do reconhecimento...');
+                            this.startRecognitionSafely();
+                        } else {
+                            console.log('🎤 Cancelando restart - condições mudaram');
+                        }
+                    }, delay);
+                }} else {
                 if (this.restartAttempts >= this.maxRestartAttempts) {
                     console.log('🎤 Máximo de tentativas de restart atingido');
+                    if (window.showNotification) {
+                        showNotification('🎤 Reconhecimento de voz pausado após várias tentativas. Clique no microfone para reativar.', 'warning', 5000);
+                    }
+                    // Reset para permitir nova tentativa manual
+                    this.restartAttempts = 0;
                 }
                 this.updateVoiceStatus('idle');
             }
@@ -358,13 +384,14 @@ class VoiceRecognition {    constructor() {
         
         // Event listeners dos controles
         this.setupVoiceControls();
-    }
-      setupVoiceControls() {
+    }    setupVoiceControls() {
         const voiceEnabled = document.getElementById('voice-enabled');
         const autoSubmit = document.getElementById('voice-auto-submit');
         const confidenceSlider = document.getElementById('voice-confidence');
         const confidenceValue = document.getElementById('confidence-value');
         const continuousMode = document.getElementById('voice-continuous');
+        const groupMode = document.getElementById('voice-group-mode');
+        const activationWord = document.getElementById('voice-activation-word');
         
         if (voiceEnabled) {
             voiceEnabled.addEventListener('change', (e) => {
@@ -387,6 +414,22 @@ class VoiceRecognition {    constructor() {
                 if (!this.continuousMode && this.isListening) {
                     this.stopContinuousListening();
                 }
+            });
+        }
+        
+        if (groupMode) {
+            groupMode.addEventListener('change', (e) => {
+                this.setGroupMode(e.target.checked);
+                localStorage.setItem('voiceGroupMode', this.groupMode);
+                console.log(`🎤 Modo grupo ${this.groupMode ? 'ATIVADO' : 'DESATIVADO'} via interface`);
+            });
+        }
+        
+        if (activationWord) {
+            activationWord.addEventListener('change', (e) => {
+                this.useActivationWord = e.target.checked;
+                localStorage.setItem('voiceActivationWord', this.useActivationWord);
+                console.log(`🎤 Palavras de ativação ${this.useActivationWord ? 'ATIVADAS' : 'DESATIVADAS'} via interface`);
             });
         }
         
@@ -499,10 +542,17 @@ class VoiceRecognition {    constructor() {
             this.recognition.stop();
         }
     }
-    
-    // Método seguro para iniciar reconhecimento evitando loops de restart
+      // Método seguro para iniciar reconhecimento evitando loops de restart
     startRecognitionSafely() {
-        if (!this.isSupported || this.isListening) return;
+        if (!this.isSupported) {
+            console.log('🎤 Reconhecimento de voz não suportado');
+            return;
+        }
+        
+        if (this.isListening) {
+            console.log('🎤 Reconhecimento já está ativo');
+            return;
+        }
         
         console.log('🎤 Iniciando reconhecimento de forma segura...');
         
@@ -520,12 +570,20 @@ class VoiceRecognition {    constructor() {
                 this.requestMicrophonePermissionForRound();
             } else if (error.name === 'InvalidStateError') {
                 // Se já está rodando, só ignora
-                console.log('🎤 Reconhecimento já está ativo, ignorando...');
+                console.log('🎤 Reconhecimento já está ativo (InvalidStateError), ignorando...');
                 this.isListening = true; // Corrige o estado
             } else {
                 // Para outros erros, não reinicia
                 console.log('🎤 Erro não relacionado à permissão, não reiniciando...');
                 this.shouldRestart = false;
+                
+                // Tenta reiniciar após um delay maior para erros não críticos
+                if (this.gameActive && this.continuousMode && this.restartAttempts < this.maxRestartAttempts) {
+                    setTimeout(() => {
+                        console.log('🎤 Tentando reiniciar após erro técnico...');
+                        this.startRecognitionSafely();
+                    }, 2000);
+                }
             }
         }
     }
@@ -542,14 +600,15 @@ class VoiceRecognition {    constructor() {
         console.log('gameState existe:', !!window.gameState);
         console.log('isProcessingAnswer:', window.gameState?.isProcessingAnswer);
         console.log('submitAnswer existe:', typeof submitAnswer);
-        
-        // Submete automaticamente se não estiver processando uma resposta
+          // Submete automaticamente se não estiver processando uma resposta
         if (!window.gameState?.isProcessingAnswer) {
             console.log('🎤 Submetendo automaticamente...');
             setTimeout(() => {
                 if (typeof submitAnswer === 'function') {
                     submitAnswer();
                     console.log('🎤 submitAnswer() executado com sucesso!');
+                    // Limpa o último resultado para permitir a mesma resposta novamente se necessário
+                    this.lastResult = '';
                 } else {
                     console.error('🎤 Função submitAnswer não encontrada!');
                     // Tenta submeter manualmente clicando no botão como fallback
@@ -557,6 +616,8 @@ class VoiceRecognition {    constructor() {
                     if (submitBtn && !submitBtn.disabled) {
                         submitBtn.click();
                         console.log('🎤 Fallback: clicou no botão submit');
+                        // Limpa o último resultado para permitir a mesma resposta novamente se necessário
+                        this.lastResult = '';
                     }
                 }
             }, 300); // Delay ainda menor para resposta mais rápida
@@ -770,19 +831,28 @@ class VoiceRecognition {    constructor() {
         }
           localStorage.setItem('voiceEnabled', enabled);
     }
-    
-    loadSettings() {
+      loadSettings() {
         // Carrega configurações do localStorage
         const saved = {
             enabled: localStorage.getItem('voiceEnabled') !== 'false',
             autoSubmit: localStorage.getItem('voiceAutoSubmit') !== 'false',
             continuous: localStorage.getItem('voiceContinuous') !== 'false',
-            confidence: parseFloat(localStorage.getItem('voiceConfidence')) || 0.4
+            confidence: parseFloat(localStorage.getItem('voiceConfidence')) || 0.4,
+            groupMode: localStorage.getItem('voiceGroupMode') === 'true',
+            activationWord: localStorage.getItem('voiceActivationWord') === 'true'
         };
         
         this.autoSubmit = saved.autoSubmit;
         this.continuousMode = saved.continuous;
         this.confidenceThreshold = saved.confidence;
+        this.groupMode = saved.groupMode;
+        this.useActivationWord = saved.activationWord;
+        
+        console.log('🎤 Configurações carregadas:', {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
         
         // Atualiza interface
         const voiceEnabled = document.getElementById('voice-enabled');
@@ -790,12 +860,16 @@ class VoiceRecognition {    constructor() {
         const continuousCheckbox = document.getElementById('voice-continuous');
         const confidenceSlider = document.getElementById('voice-confidence');
         const confidenceValue = document.getElementById('confidence-value');
+        const groupModeCheckbox = document.getElementById('voice-group-mode');
+        const activationWordCheckbox = document.getElementById('voice-activation-word');
         
         if (voiceEnabled) voiceEnabled.checked = saved.enabled && this.isSupported;
         if (autoSubmitCheckbox) autoSubmitCheckbox.checked = saved.autoSubmit;
         if (continuousCheckbox) continuousCheckbox.checked = saved.continuous;
         if (confidenceSlider) confidenceSlider.value = saved.confidence;
         if (confidenceValue) confidenceValue.textContent = Math.round(saved.confidence * 100) + '%';
+        if (groupModeCheckbox) groupModeCheckbox.checked = saved.groupMode;
+        if (activationWordCheckbox) activationWordCheckbox.checked = saved.activationWord;
         
         this.setEnabled(saved.enabled);
     }
@@ -830,7 +904,20 @@ class VoiceRecognition {    constructor() {
     stopGameListening() {
         this.stopContinuousListening();
     }
-    
+      // Método público para forçar restart manual
+    restartVoiceRecognition() {
+        console.log('🎤 Restart manual solicitado');
+        this.restartAttempts = 0; // Reset contador
+        this.stopContinuousListening();
+        
+        setTimeout(() => {
+            if (this.gameActive && this.continuousMode) {
+                console.log('🎤 Reiniciando reconhecimento manualmente...');
+                this.startContinuousListening();
+            }
+        }, 1000);
+    }
+
     // Método público para iniciar escuta via código
     listen() {
         if (this.isSupported && !this.isListening) {
@@ -848,9 +935,15 @@ class VoiceRecognition {    constructor() {
     }
     
     // ===== MÉTODOS DE FILTRAGEM MULTI-USUÁRIO =====
-    
-    shouldProcessSpeech(transcript, confidence) {
+      shouldProcessSpeech(transcript, confidence) {
         const now = Date.now();
+        
+        console.log(`🎤 Verificando filtros para: "${transcript}"`);
+        console.log(`🎤 Configurações atuais:`, {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
         
         // 1. Filtro básico de comprimento
         if (transcript.length < this.minSpeechLength) {
@@ -880,11 +973,12 @@ class VoiceRecognition {    constructor() {
         
         // 5. Filtro de palavras de ativação (se habilitado)
         if (this.useActivationWord && !this.hasActivationWord(transcript)) {
-            console.log('🎤 Filtro: palavra de ativação não encontrada');
+            console.log(`🎤 Filtro: palavra de ativação não encontrada. useActivationWord=${this.useActivationWord}`);
+            console.log(`🎤 Palavras de ativação disponíveis:`, this.activationWords);
             return false;
         }
         
-        // 6. Filtro contextual (evita repetições e ruído)
+        // 6. Filtro contextual (evita ruído, mas NÃO bloqueia repetições)
         if (!this.passesContextualFilter(transcript)) {
             console.log('🎤 Filtro: não passou no filtro contextual');
             return false;
@@ -893,6 +987,7 @@ class VoiceRecognition {    constructor() {
         // Se chegou até aqui, pode processar
         this.lastSubmissionTime = now;
         this.consecutiveNoiseCount = 0; // Reset contador de ruído
+        console.log(`🎤 Todos os filtros passaram para: "${transcript}"`);
         return true;
     }
     
@@ -930,32 +1025,23 @@ class VoiceRecognition {    constructor() {
         
         return extractedAnswer;
     }
-    
-    passesContextualFilter(transcript) {
+      passesContextualFilter(transcript) {
         const normalizedTranscript = this.normalizeText(transcript);
         
         console.log(`🔍 Verificando filtro contextual para: "${normalizedTranscript}"`);
         
-        // 1. Evita repetições muito próximas
-        if (this.lastResult && this.isSimilarToLastResult(normalizedTranscript)) {
-            console.log(`🔍 Filtro contextual: muito similar ao último resultado "${this.lastResult}"`);
-            return false;
-        }
-        
-        // 2. Filtro de ruído comum
+        // 1. Filtro de ruído comum
         if (this.isCommonNoise(normalizedTranscript)) {
             console.log(`🔍 Filtro contextual: detectado como ruído comum`);
             return false;
         }
-        
-        // 3. Filtro de palavras muito curtas
+          // 2. Filtro de palavras muito curtas
         const words = normalizedTranscript.split(' ').filter(w => w.length > 1);
         if (words.length === 0) {
             console.log(`🔍 Filtro contextual: nenhuma palavra válida encontrada`);
             return false;
         }
-        
-        // 4. Se tem palavra de ativação, extrair apenas a resposta
+          // 3. Se tem palavra de ativação, extrair apenas a resposta
         if (this.useActivationWord && this.hasActivationWord(transcript)) {
             const extractedAnswer = this.extractAnswerFromActivation(transcript);
             if (extractedAnswer && extractedAnswer.length >= 2) {
@@ -964,7 +1050,7 @@ class VoiceRecognition {    constructor() {
             }
         }
         
-        // 5. Para palavras simples sem ativação, ser mais permissivo
+        // 4. Para palavras simples sem ativação, ser mais permissivo
         if (words.length === 1 && words[0].length >= 3) {
             console.log(`🔍 Filtro contextual: palavra simples "${words[0]}" - PASSOU`);
             return true;
@@ -979,17 +1065,16 @@ class VoiceRecognition {    constructor() {
             .replace(/[^\w\sáéíóúâêîôûàèìòùãõç]/g, '') // Remove pontuação
             .replace(/\s+/g, ' ') // Normaliza espaços
             .trim();
-    }
-    
-    isSimilarToLastResult(transcript) {
+    }    isSimilarToLastResult(transcript) {
         if (!this.lastResult) return false;
         
         const lastNormalized = this.normalizeText(this.lastResult);
         const currentNormalized = this.normalizeText(transcript);
         
-        // Verifica similaridade simples
-        return lastNormalized === currentNormalized || 
-               this.calculateSimilarity(lastNormalized, currentNormalized) > 0.8;
+        const similarity = this.calculateSimilarity(lastNormalized, currentNormalized);
+        console.log(`🔍 Similaridade calculada: "${currentNormalized}" vs "${lastNormalized}" = ${similarity.toFixed(3)}`);
+          // Verifica similaridade simples (reduzido de 0.8 para 0.95 para ser muito menos agressivo)
+        return lastNormalized === currentNormalized || similarity > 0.95;
     }
     
     calculateSimilarity(str1, str2) {
@@ -1052,11 +1137,18 @@ class VoiceRecognition {    constructor() {
             showNotification(`🎤 Ignorado: "${transcript}" (${confidencePercent}%)`, 'info', 1500);
         }
     }
-    
-    // Método para ativar/desativar modo grupo
+      // Método para ativar/desativar modo grupo
     setGroupMode(enabled) {
+        console.log(`🎤 setGroupMode chamado com: ${enabled}`);
+        console.log(`🎤 Estado anterior:`, {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
+        
         this.groupMode = enabled;
-          if (enabled) {
+        
+        if (enabled) {
             // Configurações mais restritivas para grupo
             this.confidenceThreshold = Math.max(0.5, this.confidenceThreshold); // Reduzido de 0.6 para 0.5
             this.submissionCooldown = 3000;
@@ -1069,6 +1161,12 @@ class VoiceRecognition {    constructor() {
             this.useActivationWord = false;
             console.log('🎤 Modo individual ativado - filtros mais permissivos');
         }
+        
+        console.log(`🎤 Estado novo:`, {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
         
         this.updateGroupModeUI();
     }
@@ -1153,3 +1251,13 @@ window.isVoiceActive = isVoiceActive;
 window.getVoiceStatus = getVoiceStatus;
 window.requestVoiceDetection = requestVoiceDetection;
 window.cleanVoiceState = cleanVoiceState;
+
+// Função de utilidade para restart manual do reconhecimento
+window.restartVoice = function() {
+    if (window.voiceRecognition && window.voiceRecognition.restartVoiceRecognition) {
+        window.voiceRecognition.restartVoiceRecognition();
+        console.log('🎤 Restart manual executado');
+    } else {
+        console.log('❌ Sistema de voz não disponível para restart');
+    }
+};

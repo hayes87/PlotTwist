@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Teste de Event Listeners</title>
+    <link rel="stylesheet" href="voice-styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover { background: #0056b3; }
+        .log-area {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .config-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .localStorage-display {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+        }
+        .setup-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>✅ Teste de Event Listeners e Persistência</h1>
+
+    <div class="test-section">
+        <h2>🎛️ Controles de Voz (Interface Real)</h2>
+        <div class="setup-container">
+            <!-- Os controles de voz reais serão adicionados aqui -->
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Estado Atual do Sistema</h2>
+        <div id="system-state" class="config-display">
+            Sistema não inicializado...
+        </div>
+        <button class="button" onclick="updateSystemState()">Atualizar Estado</button>
+        <button class="button" onclick="resetSystem()">Reinicializar Sistema</button>
+    </div>
+
+    <div class="test-section">
+        <h2>💾 localStorage</h2>
+        <div id="localStorage-state" class="localStorage-display">
+            Carregando...
+        </div>
+        <button class="button" onclick="updateLocalStorageState()">Atualizar localStorage</button>
+        <button class="button" onclick="clearVoiceSettings()">Limpar Configurações</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Testes Automáticos</h2>
+        <button class="button" onclick="testGroupModeToggle()">Testar Toggle Modo Grupo</button>
+        <button class="button" onclick="testActivationWordToggle()">Testar Toggle Palavras de Ativação</button>
+        <button class="button" onclick="testAllToggles()">Testar Todos os Toggles</button>
+        <button class="button" onclick="testPersistence()">Testar Persistência</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Log de Eventos</h2>
+        <div id="event-log" class="log-area">
+            Logs de eventos aparecerão aqui...
+        </div>
+        <button class="button" onclick="clearLog()">Limpar Log</button>
+    </div>
+
+    <script src="voice-recognition.js"></script>
+
+    <script>
+        let voiceSystem = null;
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logArea = document.getElementById('event-log');
+            const colors = {
+                info: '#74b9ff',
+                success: '#55a3ff',
+                warning: '#fdcb6e',
+                error: '#e17055',
+                event: '#fd79a8'
+            };
+            
+            logArea.innerHTML += `<div style="color: ${colors[type] || colors.info}">[${timestamp}] ${message}</div>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Intercepta console.log
+        const originalLog = console.log;
+        console.log = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('🎤')) {
+                addLog('CONSOLE: ' + message, 'info');
+            }
+            originalLog.apply(console, args);
+        };
+
+        function initSystem() {
+            try {
+                if (window.VoiceRecognition) {
+                    voiceSystem = new VoiceRecognition();
+                    window.voiceRecognition = voiceSystem;
+                    
+                    // Monitora mudanças no localStorage
+                    monitorLocalStorageChanges();
+                    
+                    addLog('Sistema inicializado com sucesso', 'success');
+                    updateSystemState();
+                    updateLocalStorageState();
+                } else {
+                    addLog('ERRO: VoiceRecognition não disponível', 'error');
+                }
+            } catch (error) {
+                addLog(`ERRO ao inicializar: ${error.message}`, 'error');
+            }
+        }
+
+        function updateSystemState() {
+            if (!voiceSystem) {
+                document.getElementById('system-state').innerHTML = '<strong>Sistema não inicializado</strong>';
+                return;
+            }
+
+            document.getElementById('system-state').innerHTML = `
+                <h4>Estado do Sistema de Voz</h4>
+                <strong>Classe:</strong> ${voiceSystem.constructor.name}<br>
+                <strong>Modo Grupo:</strong> ${voiceSystem.groupMode}<br>
+                <strong>Palavras de Ativação:</strong> ${voiceSystem.useActivationWord}<br>
+                <strong>Confiança Mínima:</strong> ${voiceSystem.confidenceThreshold}<br>
+                <strong>Auto Submit:</strong> ${voiceSystem.autoSubmit}<br>
+                <strong>Modo Contínuo:</strong> ${voiceSystem.continuousMode}<br>
+                <strong>Suportado:</strong> ${voiceSystem.isSupported}<br>
+                <strong>Listening:</strong> ${voiceSystem.isListening}<br>
+                <strong>Cooldown:</strong> ${voiceSystem.submissionCooldown}ms
+            `;
+        }
+
+        function updateLocalStorageState() {
+            const voiceSettings = {
+                voiceEnabled: localStorage.getItem('voiceEnabled'),
+                voiceAutoSubmit: localStorage.getItem('voiceAutoSubmit'),
+                voiceContinuous: localStorage.getItem('voiceContinuous'),
+                voiceConfidence: localStorage.getItem('voiceConfidence'),
+                voiceGroupMode: localStorage.getItem('voiceGroupMode'),
+                voiceActivationWord: localStorage.getItem('voiceActivationWord')
+            };
+
+            document.getElementById('localStorage-state').innerHTML = `
+                <h4>localStorage</h4>
+                <pre>${JSON.stringify(voiceSettings, null, 2)}</pre>
+            `;
+        }
+
+        function monitorLocalStorageChanges() {
+            // Monitora mudanças no localStorage
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                if (key.startsWith('voice')) {
+                    addLog(`localStorage.setItem("${key}", "${value}")`, 'event');
+                }
+                originalSetItem.apply(this, arguments);
+                updateLocalStorageState();
+            };
+        }
+
+        function testGroupModeToggle() {
+            addLog('=== INICIANDO TESTE DO MODO GRUPO ===', 'info');
+            
+            if (!voiceSystem) {
+                addLog('ERRO: Sistema não inicializado', 'error');
+                return;
+            }
+
+            const checkbox = document.getElementById('voice-group-mode');
+            if (!checkbox) {
+                addLog('ERRO: Checkbox voice-group-mode não encontrado', 'error');
+                return;
+            }
+
+            addLog(`Estado inicial: checkbox.checked = ${checkbox.checked}, voiceSystem.groupMode = ${voiceSystem.groupMode}`, 'info');
+
+            // Simula clique no checkbox
+            const originalState = checkbox.checked;
+            checkbox.checked = !originalState;
+            
+            addLog(`Simulando evento 'change' no checkbox...`, 'info');
+            checkbox.dispatchEvent(new Event('change'));
+            
+            // Verifica resultado
+            setTimeout(() => {
+                addLog(`Estado após evento: checkbox.checked = ${checkbox.checked}, voiceSystem.groupMode = ${voiceSystem.groupMode}`, 'info');
+                
+                if (checkbox.checked === voiceSystem.groupMode) {
+                    addLog('✅ SUCESSO: Checkbox e sistema sincronizados', 'success');
+                } else {
+                    addLog('❌ FALHA: Checkbox e sistema desincronizados', 'error');
+                }
+                
+                updateSystemState();
+                addLog('=== FIM DO TESTE DO MODO GRUPO ===', 'info');
+            }, 100);
+        }
+
+        function testActivationWordToggle() {
+            addLog('=== INICIANDO TESTE DAS PALAVRAS DE ATIVAÇÃO ===', 'info');
+            
+            if (!voiceSystem) {
+                addLog('ERRO: Sistema não inicializado', 'error');
+                return;
+            }
+
+            const checkbox = document.getElementById('voice-activation-word');
+            if (!checkbox) {
+                addLog('ERRO: Checkbox voice-activation-word não encontrado', 'error');
+                return;
+            }
+
+            addLog(`Estado inicial: checkbox.checked = ${checkbox.checked}, voiceSystem.useActivationWord = ${voiceSystem.useActivationWord}`, 'info');
+
+            // Simula clique no checkbox
+            const originalState = checkbox.checked;
+            checkbox.checked = !originalState;
+            
+            addLog(`Simulando evento 'change' no checkbox...`, 'info');
+            checkbox.dispatchEvent(new Event('change'));
+            
+            // Verifica resultado
+            setTimeout(() => {
+                addLog(`Estado após evento: checkbox.checked = ${checkbox.checked}, voiceSystem.useActivationWord = ${voiceSystem.useActivationWord}`, 'info');
+                
+                if (checkbox.checked === voiceSystem.useActivationWord) {
+                    addLog('✅ SUCESSO: Checkbox e sistema sincronizados', 'success');
+                } else {
+                    addLog('❌ FALHA: Checkbox e sistema desincronizados', 'error');
+                }
+                
+                updateSystemState();
+                addLog('=== FIM DO TESTE DAS PALAVRAS DE ATIVAÇÃO ===', 'info');
+            }, 100);
+        }
+
+        function testAllToggles() {
+            addLog('=== INICIANDO TESTE DE TODOS OS TOGGLES ===', 'info');
+            
+            const checkboxes = [
+                { id: 'voice-enabled', prop: 'isEnabled' },
+                { id: 'voice-auto-submit', prop: 'autoSubmit' },
+                { id: 'voice-continuous', prop: 'continuousMode' },
+                { id: 'voice-group-mode', prop: 'groupMode' },
+                { id: 'voice-activation-word', prop: 'useActivationWord' }
+            ];
+
+            checkboxes.forEach((item, index) => {
+                setTimeout(() => {
+                    const checkbox = document.getElementById(item.id);
+                    if (checkbox) {
+                        addLog(`Testando ${item.id}...`, 'info');
+                        const originalState = checkbox.checked;
+                        checkbox.checked = !originalState;
+                        checkbox.dispatchEvent(new Event('change'));
+                        
+                        setTimeout(() => {
+                            updateSystemState();
+                        }, 50);
+                    } else {
+                        addLog(`Checkbox ${item.id} não encontrado`, 'warning');
+                    }
+                }, index * 500);
+            });
+        }
+
+        function testPersistence() {
+            addLog('=== INICIANDO TESTE DE PERSISTÊNCIA ===', 'info');
+            
+            if (!voiceSystem) {
+                addLog('ERRO: Sistema não inicializado', 'error');
+                return;
+            }
+
+            // Altera algumas configurações
+            voiceSystem.setGroupMode(true);
+            voiceSystem.useActivationWord = true;
+            voiceSystem.confidenceThreshold = 0.75;
+            
+            // Salva manualmente
+            localStorage.setItem('voiceGroupMode', voiceSystem.groupMode);
+            localStorage.setItem('voiceActivationWord', voiceSystem.useActivationWord);
+            localStorage.setItem('voiceConfidence', voiceSystem.confidenceThreshold);
+            
+            addLog('Configurações salvas', 'info');
+            
+            // Reinicia sistema
+            setTimeout(() => {
+                voiceSystem = new VoiceRecognition();
+                window.voiceRecognition = voiceSystem;
+                
+                addLog('Sistema reiniciado, verificando se configurações foram carregadas...', 'info');
+                
+                setTimeout(() => {
+                    updateSystemState();
+                    updateLocalStorageState();
+                    
+                    if (voiceSystem.groupMode && voiceSystem.useActivationWord) {
+                        addLog('✅ SUCESSO: Configurações persistidas corretamente', 'success');
+                    } else {
+                        addLog('❌ FALHA: Configurações não foram persistidas', 'error');
+                    }
+                    
+                    addLog('=== FIM DO TESTE DE PERSISTÊNCIA ===', 'info');
+                }, 500);
+            }, 1000);
+        }
+
+        function resetSystem() {
+            voiceSystem = null;
+            addLog('Sistema resetado', 'warning');
+            setTimeout(initSystem, 100);
+        }
+
+        function clearVoiceSettings() {
+            const keys = ['voiceEnabled', 'voiceAutoSubmit', 'voiceContinuous', 'voiceConfidence', 'voiceGroupMode', 'voiceActivationWord'];
+            keys.forEach(key => localStorage.removeItem(key));
+            addLog('Configurações de voz removidas do localStorage', 'warning');
+            updateLocalStorageState();
+        }
+
+        function clearLog() {
+            document.getElementById('event-log').innerHTML = '';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Página carregada, inicializando sistema...', 'info');
+            setTimeout(initSystem, 500);
+            
+            // Atualiza estado a cada 2 segundos
+            setInterval(updateSystemState, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Teste Final - Configurações de Voz</title>
+    <link rel="stylesheet" href="voice-styles.css">
+    <link rel="stylesheet" href="voice-multiuser-styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .status-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success { border-color: #28a745; background: #d4edda; }
+        .error { border-color: #dc3545; background: #f8d7da; }
+        .warning { border-color: #ffc107; background: #fff3cd; }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px 4px;
+            font-size: 14px;
+        }
+        .button:hover { background: #0056b3; }
+        .button.success { background: #28a745; }
+        .button.danger { background: #dc3545; }
+        .setup-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+        }
+        .log-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .test-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .test-result.pass { border-color: #28a745; background: #d4edda; }
+        .test-result.fail { border-color: #dc3545; background: #f8d7da; }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .config-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .config-item strong {
+            color: #495057;
+        }
+        .answer-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Teste Final - Sistema de Reconhecimento de Voz</h1>
+    
+    <div class="test-container">
+        <h2>📊 Status do Sistema</h2>
+        <div id="system-status" class="status-panel">
+            Inicializando sistema...
+        </div>
+        
+        <div class="config-grid" id="config-display">
+            <!-- Configurações serão exibidas aqui -->
+        </div>
+        
+        <div>
+            <button class="button" onclick="initializeSystem()">🔄 Reinicializar Sistema</button>
+            <button class="button" onclick="runAllTests()">🧪 Executar Todos os Testes</button>
+            <button class="button success" onclick="exportTestReport()">📋 Gerar Relatório</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🎛️ Interface de Configuração (Real)</h2>
+        <div class="setup-container">
+            <!-- Os controles reais de voz serão criados aqui -->
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🎤 Simulação de Campo de Resposta</h2>
+        <input type="text" id="answer-input" class="answer-input" placeholder="Simulação do campo de resposta do jogo">
+        <div>
+            <button class="button" onclick="simulateVoiceInput('resposta batman')">🎤 Simular: "resposta batman"</button>
+            <button class="button" onclick="simulateVoiceInput('batman')">🎤 Simular: "batman" (sem ativação)</button>
+            <button class="button" onclick="simulateVoiceInput('é o superman')">🎤 Simular: "é o superman"</button>
+            <button class="button" onclick="testActivationWordsFiltering()">🔍 Testar Filtros</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Resultados dos Testes</h2>
+        <div id="test-results">
+            Nenhum teste executado ainda.
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 Log de Debug</h2>
+        <div id="debug-log" class="log-output">
+            Aguardando logs...
+        </div>
+        <button class="button" onclick="clearDebugLog()">🗑️ Limpar Log</button>
+    </div>
+
+    <!-- Scripts necessários -->
+    <script src="voice-recognition.js"></script>
+    <script src="voice-recognition-multiuser.js"></script>
+
+    <script>
+        let voiceSystem = null;
+        let testResults = [];
+        let logCount = 0;
+
+        // Funções de simulação do ambiente do jogo
+        window.submitAnswer = function() {
+            addDebugLog('🎯 submitAnswer() chamado - resposta enviada!', 'success');
+        };
+
+        window.gameState = {
+            isProcessingAnswer: false
+        };
+
+        window.showNotification = function(message, type, duration) {
+            addDebugLog(`📢 NOTIFICATION [${type}]: ${message}`, 'info');
+        };
+
+        function addDebugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logArea = document.getElementById('debug-log');
+            const colors = {
+                info: '#74c0fc',
+                success: '#51cf66',
+                warning: '#ffd43b',
+                error: '#ff6b6b',
+                system: '#9775fa'
+            };
+            
+            logCount++;
+            const logEntry = `[${timestamp}] ${message}\n`;
+            logArea.textContent += logEntry;
+            logArea.scrollTop = logArea.scrollHeight;
+            
+            // Limita o log a 100 entradas
+            if (logCount > 100) {
+                const lines = logArea.textContent.split('\n');
+                logArea.textContent = lines.slice(-50).join('\n');
+                logCount = 50;
+            }
+        }
+
+        // Intercepta logs do console
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('🎤')) {
+                addDebugLog(`CONSOLE: ${message}`, 'system');
+            }
+            originalLog.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            addDebugLog(`ERROR: ${args.join(' ')}`, 'error');
+            originalError.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            addDebugLog(`WARN: ${args.join(' ')}`, 'warning');
+            originalWarn.apply(console, args);
+        };
+
+        function initializeSystem() {
+            addDebugLog('🚀 Inicializando sistema de reconhecimento de voz...', 'info');
+            
+            try {
+                if (window.VoiceRecognition) {
+                    voiceSystem = new VoiceRecognition();
+                    window.voiceRecognition = voiceSystem;
+                    addDebugLog('✅ Sistema inicializado com sucesso', 'success');
+                    updateSystemStatus();
+                } else {
+                    addDebugLog('❌ ERRO: Classe VoiceRecognition não encontrada', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`❌ ERRO na inicialização: ${error.message}`, 'error');
+            }
+        }
+
+        function updateSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            const configDiv = document.getElementById('config-display');
+            
+            if (voiceSystem) {
+                statusDiv.className = 'status-panel success';
+                statusDiv.innerHTML = `
+                    <h3>✅ Sistema Ativo: ${voiceSystem.constructor.name}</h3>
+                    <p>Sistema inicializado e operacional</p>
+                `;
+                
+                configDiv.innerHTML = `
+                    <div class="config-item">
+                        <strong>Modo Grupo:</strong><br>
+                        ${voiceSystem.groupMode ? '🟢 ATIVO' : '🔴 INATIVO'}
+                    </div>
+                    <div class="config-item">
+                        <strong>Palavras de Ativação:</strong><br>
+                        ${voiceSystem.useActivationWord ? '🟢 ATIVAS' : '🔴 INATIVAS'}
+                    </div>
+                    <div class="config-item">
+                        <strong>Confiança Mínima:</strong><br>
+                        ${(voiceSystem.confidenceThreshold * 100).toFixed(0)}%
+                    </div>
+                    <div class="config-item">
+                        <strong>Auto Submit:</strong><br>
+                        ${voiceSystem.autoSubmit ? '🟢 ATIVO' : '🔴 INATIVO'}
+                    </div>
+                    <div class="config-item">
+                        <strong>Modo Contínuo:</strong><br>
+                        ${voiceSystem.continuousMode ? '🟢 ATIVO' : '🔴 INATIVO'}
+                    </div>
+                    <div class="config-item">
+                        <strong>Cooldown:</strong><br>
+                        ${voiceSystem.submissionCooldown}ms
+                    </div>
+                `;
+            } else {
+                statusDiv.className = 'status-panel error';
+                statusDiv.innerHTML = `
+                    <h3>❌ Sistema Não Inicializado</h3>
+                    <p>Clique em "Reinicializar Sistema" para tentar novamente</p>
+                `;
+                
+                configDiv.innerHTML = `
+                    <div class="config-item">
+                        <strong>Status:</strong><br>
+                        Sistema não disponível
+                    </div>
+                `;
+            }
+        }
+
+        function runAllTests() {
+            if (!voiceSystem) {
+                addDebugLog('❌ Sistema não inicializado para testes', 'error');
+                return;
+            }
+
+            addDebugLog('🧪 === INICIANDO BATERIA DE TESTES ===', 'info');
+            testResults = [];
+
+            // Teste 1: Event Listeners
+            testEventListeners();
+            
+            // Teste 2: Configurações de Grupo
+            setTimeout(() => testGroupModeConfiguration(), 500);
+            
+            // Teste 3: Palavras de Ativação
+            setTimeout(() => testActivationWordConfiguration(), 1000);
+            
+            // Teste 4: Persistência
+            setTimeout(() => testConfigurationPersistence(), 1500);
+            
+            // Teste 5: Filtros
+            setTimeout(() => testFilteringLogic(), 2000);
+            
+            // Exibe resultados
+            setTimeout(() => displayTestResults(), 2500);
+        }
+
+        function testEventListeners() {
+            addDebugLog('🔍 Teste 1: Event Listeners', 'info');
+            
+            const checkboxes = [
+                { id: 'voice-group-mode', name: 'Modo Grupo' },
+                { id: 'voice-activation-word', name: 'Palavras de Ativação' },
+                { id: 'voice-enabled', name: 'Voz Habilitada' },
+                { id: 'voice-auto-submit', name: 'Auto Submit' },
+                { id: 'voice-continuous', name: 'Modo Contínuo' }
+            ];
+            
+            let passCount = 0;
+            
+            checkboxes.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    passCount++;
+                    addDebugLog(`✅ ${item.name}: Elemento encontrado`, 'success');
+                } else {
+                    addDebugLog(`❌ ${item.name}: Elemento NÃO encontrado`, 'error');
+                }
+            });
+            
+            testResults.push({
+                name: 'Event Listeners',
+                passed: passCount === checkboxes.length,
+                details: `${passCount}/${checkboxes.length} elementos encontrados`
+            });
+        }
+
+        function testGroupModeConfiguration() {
+            addDebugLog('🔍 Teste 2: Configuração de Modo Grupo', 'info');
+            
+            const checkbox = document.getElementById('voice-group-mode');
+            if (!checkbox) {
+                testResults.push({
+                    name: 'Configuração Modo Grupo',
+                    passed: false,
+                    details: 'Checkbox não encontrado'
+                });
+                return;
+            }
+            
+            // Testa alternância
+            const originalState = voiceSystem.groupMode;
+            voiceSystem.setGroupMode(!originalState);
+            
+            const newState = voiceSystem.groupMode;
+            const success = newState !== originalState;
+            
+            addDebugLog(`Estado original: ${originalState}, Novo estado: ${newState}`, 'info');
+            
+            testResults.push({
+                name: 'Configuração Modo Grupo',
+                passed: success,
+                details: success ? 'Alternância funcionando' : 'Alternância falhou'
+            });
+            
+            // Restaura estado
+            voiceSystem.setGroupMode(originalState);
+        }
+
+        function testActivationWordConfiguration() {
+            addDebugLog('🔍 Teste 3: Configuração de Palavras de Ativação', 'info');
+            
+            const checkbox = document.getElementById('voice-activation-word');
+            if (!checkbox) {
+                testResults.push({
+                    name: 'Configuração Palavras Ativação',
+                    passed: false,
+                    details: 'Checkbox não encontrado'
+                });
+                return;
+            }
+            
+            // Testa alternância
+            const originalState = voiceSystem.useActivationWord;
+            voiceSystem.useActivationWord = !originalState;
+            
+            const newState = voiceSystem.useActivationWord;
+            const success = newState !== originalState;
+            
+            addDebugLog(`Estado original: ${originalState}, Novo estado: ${newState}`, 'info');
+            
+            testResults.push({
+                name: 'Configuração Palavras Ativação',
+                passed: success,
+                details: success ? 'Alternância funcionando' : 'Alternância falhou'
+            });
+            
+            // Restaura estado
+            voiceSystem.useActivationWord = originalState;
+        }
+
+        function testConfigurationPersistence() {
+            addDebugLog('🔍 Teste 4: Persistência de Configurações', 'info');
+            
+            // Salva configurações de teste
+            const testConfig = {
+                groupMode: true,
+                activationWord: true,
+                confidence: 0.7
+            };
+            
+            localStorage.setItem('voiceGroupMode', testConfig.groupMode);
+            localStorage.setItem('voiceActivationWord', testConfig.activationWord);
+            localStorage.setItem('voiceConfidence', testConfig.confidence);
+            
+            // Testa carregamento
+            if (voiceSystem.loadSettings) {
+                voiceSystem.loadSettings();
+                
+                const loaded = {
+                    groupMode: voiceSystem.groupMode,
+                    activationWord: voiceSystem.useActivationWord,
+                    confidence: voiceSystem.confidenceThreshold
+                };
+                
+                const success = loaded.groupMode === testConfig.groupMode && 
+                               loaded.activationWord === testConfig.activationWord;
+                
+                testResults.push({
+                    name: 'Persistência de Configurações',
+                    passed: success,
+                    details: success ? 'Configurações carregadas corretamente' : 'Falha no carregamento'
+                });
+                
+                addDebugLog(`Configurações carregadas: ${JSON.stringify(loaded)}`, 'info');
+            } else {
+                testResults.push({
+                    name: 'Persistência de Configurações',
+                    passed: false,
+                    details: 'Método loadSettings não encontrado'
+                });
+            }
+        }
+
+        function testFilteringLogic() {
+            addDebugLog('🔍 Teste 5: Lógica de Filtros', 'info');
+            
+            if (!voiceSystem.shouldProcessSpeech) {
+                testResults.push({
+                    name: 'Lógica de Filtros',
+                    passed: false,
+                    details: 'Método shouldProcessSpeech não encontrado'
+                });
+                return;
+            }
+            
+            // Ativa modo grupo e palavras de ativação
+            voiceSystem.setGroupMode(true);
+            voiceSystem.useActivationWord = true;
+            
+            const testCases = [
+                { text: 'resposta batman', expected: true, desc: 'Com palavra de ativação' },
+                { text: 'batman', expected: false, desc: 'Sem palavra de ativação' },
+                { text: 'é o superman', expected: true, desc: 'Com palavra de ativação alternativa' }
+            ];
+            
+            let passCount = 0;
+            
+            testCases.forEach(testCase => {
+                const result = voiceSystem.shouldProcessSpeech(testCase.text, 0.8);
+                if (result === testCase.expected) {
+                    passCount++;
+                    addDebugLog(`✅ "${testCase.text}": ${result} (${testCase.desc})`, 'success');
+                } else {
+                    addDebugLog(`❌ "${testCase.text}": ${result}, esperado ${testCase.expected} (${testCase.desc})`, 'error');
+                }
+            });
+            
+            testResults.push({
+                name: 'Lógica de Filtros',
+                passed: passCount === testCases.length,
+                details: `${passCount}/${testCases.length} testes passaram`
+            });
+        }
+
+        function displayTestResults() {
+            addDebugLog('📊 === RESULTADOS DOS TESTES ===', 'info');
+            
+            const resultsDiv = document.getElementById('test-results');
+            let html = '';
+            let totalPassed = 0;
+            
+            testResults.forEach(result => {
+                if (result.passed) totalPassed++;
+                
+                html += `
+                    <div class="test-result ${result.passed ? 'pass' : 'fail'}">
+                        <div>
+                            <strong>${result.name}</strong><br>
+                            <small>${result.details}</small>
+                        </div>
+                        <div>${result.passed ? '✅ PASS' : '❌ FAIL'}</div>
+                    </div>
+                `;
+                
+                addDebugLog(`${result.passed ? '✅' : '❌'} ${result.name}: ${result.details}`, 
+                           result.passed ? 'success' : 'error');
+            });
+            
+            html = `
+                <h3>Resumo: ${totalPassed}/${testResults.length} testes passaram</h3>
+                ${html}
+            `;
+            
+            resultsDiv.innerHTML = html;
+            
+            addDebugLog(`🎯 RESUMO FINAL: ${totalPassed}/${testResults.length} testes passaram`, 
+                       totalPassed === testResults.length ? 'success' : 'warning');
+        }
+
+        function simulateVoiceInput(text) {
+            if (!voiceSystem) {
+                addDebugLog('❌ Sistema não inicializado', 'error');
+                return;
+            }
+            
+            addDebugLog(`🎤 Simulando entrada de voz: "${text}"`, 'info');
+            
+            const shouldProcess = voiceSystem.shouldProcessSpeech(text, 0.8);
+            addDebugLog(`🔍 Resultado do filtro: ${shouldProcess ? 'ACEITO' : 'REJEITADO'}`, 
+                       shouldProcess ? 'success' : 'warning');
+            
+            // Atualiza campo de entrada
+            const answerInput = document.getElementById('answer-input');
+            if (answerInput) {
+                answerInput.value = text;
+                if (shouldProcess) {
+                    answerInput.style.borderColor = '#28a745';
+                    answerInput.style.backgroundColor = '#d4edda';
+                } else {
+                    answerInput.style.borderColor = '#dc3545';
+                    answerInput.style.backgroundColor = '#f8d7da';
+                }
+                
+                // Restaura cores após 2 segundos
+                setTimeout(() => {
+                    answerInput.style.borderColor = '#ced4da';
+                    answerInput.style.backgroundColor = 'white';
+                }, 2000);
+            }
+        }
+
+        function testActivationWordsFiltering() {
+            addDebugLog('🔍 Teste detalhado de palavras de ativação', 'info');
+            
+            if (!voiceSystem) {
+                addDebugLog('❌ Sistema não inicializado', 'error');
+                return;
+            }
+            
+            // Ativa filtros rigorosos
+            voiceSystem.setGroupMode(true);
+            voiceSystem.useActivationWord = true;
+            
+            const testPhrases = [
+                'resposta batman',
+                'eu sei que é batman',
+                'é o batman',
+                'é a mulher maravilha',
+                'eh o superman',
+                'eh a catwoman',
+                'batman',
+                'superman',
+                'apenas uma frase qualquer'
+            ];
+            
+            addDebugLog(`🎯 Palavras de ativação disponíveis: [${voiceSystem.activationWords.join(', ')}]`, 'info');
+            
+            testPhrases.forEach(phrase => {
+                const hasActivation = voiceSystem.hasActivationWord(phrase);
+                const shouldProcess = voiceSystem.shouldProcessSpeech(phrase, 0.8);
+                
+                addDebugLog(`"${phrase}" → Ativação: ${hasActivation} | Processado: ${shouldProcess}`, 
+                           shouldProcess ? 'success' : 'warning');
+            });
+        }
+
+        function exportTestReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                system: voiceSystem ? voiceSystem.constructor.name : 'Not initialized',
+                configuration: voiceSystem ? {
+                    groupMode: voiceSystem.groupMode,
+                    useActivationWord: voiceSystem.useActivationWord,
+                    confidenceThreshold: voiceSystem.confidenceThreshold,
+                    autoSubmit: voiceSystem.autoSubmit,
+                    continuousMode: voiceSystem.continuousMode,
+                    submissionCooldown: voiceSystem.submissionCooldown
+                } : null,
+                testResults: testResults,
+                localStorage: {
+                    voiceEnabled: localStorage.getItem('voiceEnabled'),
+                    voiceGroupMode: localStorage.getItem('voiceGroupMode'),
+                    voiceActivationWord: localStorage.getItem('voiceActivationWord'),
+                    voiceConfidence: localStorage.getItem('voiceConfidence')
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `voice-test-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            addDebugLog('📋 Relatório de teste exportado', 'success');
+        }
+
+        function clearDebugLog() {
+            document.getElementById('debug-log').textContent = '';
+            logCount = 0;
+            addDebugLog('🗑️ Log limpo', 'info');
+        }
+
+        // Inicialização automática
+        document.addEventListener('DOMContentLoaded', function() {
+            addDebugLog('🚀 Página carregada, inicializando...', 'info');
+            setTimeout(initializeSystem, 500);
+            
+            // Atualiza status a cada 3 segundos
+            setInterval(updateSystemStatus, 3000);
+        });
+    </script>
+</body>
+</html>

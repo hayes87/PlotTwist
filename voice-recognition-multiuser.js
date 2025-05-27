@@ -15,11 +15,10 @@ class VoiceRecognitionMultiUser {
         this.restartAttempts = 0; // Conta tentativas de restart para evitar loop infinito
         this.maxRestartAttempts = 3; // Máximo de tentativas antes de parar
         this.shouldRestart = false; // Controla se deve reiniciar após erro
-        
-        // Configurações para ambiente multi-usuário
-        this.groupMode = false; // Modo para múltiplas pessoas
+          // Configurações para ambiente multi-usuário
+        this.groupMode = true; // Modo para múltiplas pessoas (ativado por padrão no multi-usuário)
         this.activationWords = ['resposta', 'eu sei', 'é o', 'é a', 'eh o', 'eh a']; // Palavras de ativação
-        this.useActivationWord = false; // Usar palavra de ativação
+        this.useActivationWord = true; // Usar palavra de ativação (ativado por padrão no multi-usuário)
         this.voiceTimeout = 3000; // Timeout para considerar fim da fala
         this.minSpeechLength = 3; // Mínimo de caracteres para considerar válido
         this.lastSubmissionTime = 0; // Controle de spam
@@ -177,9 +176,15 @@ class VoiceRecognitionMultiUser {
     }
 
     // ===== MÉTODOS DE FILTRAGEM MULTI-USUÁRIO =====
-    
-    shouldProcessSpeech(transcript, confidence) {
+      shouldProcessSpeech(transcript, confidence) {
         const now = Date.now();
+        
+        console.log(`🎤 [MULTI-USER] Verificando filtros para: "${transcript}"`);
+        console.log(`🎤 [MULTI-USER] Configurações atuais:`, {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
         
         // 1. Filtro básico de comprimento
         if (transcript.length < this.minSpeechLength) {
@@ -209,7 +214,8 @@ class VoiceRecognitionMultiUser {
         
         // 5. Filtro de palavras de ativação (se habilitado)
         if (this.useActivationWord && !this.hasActivationWord(transcript)) {
-            console.log('🎤 Filtro: palavra de ativação não encontrada');
+            console.log(`🎤 Filtro: palavra de ativação não encontrada. useActivationWord=${this.useActivationWord}`);
+            console.log(`🎤 Palavras de ativação disponíveis:`, this.activationWords);
             return false;
         }
         
@@ -222,6 +228,7 @@ class VoiceRecognitionMultiUser {
         // Se chegou até aqui, pode processar
         this.lastSubmissionTime = now;
         this.consecutiveNoiseCount = 0; // Reset contador de ruído
+        console.log(`🎤 [MULTI-USER] Todos os filtros passaram para: "${transcript}"`);
         return true;
     }
     
@@ -236,33 +243,64 @@ class VoiceRecognitionMultiUser {
         
         return threshold;
     }
-    
-    hasActivationWord(transcript) {
+      hasActivationWord(transcript) {
         const lowerTranscript = transcript.toLowerCase();
         return this.activationWords.some(word => 
             lowerTranscript.includes(word.toLowerCase())
         );
     }
     
+    extractAnswerFromActivation(transcript) {
+        const lowerTranscript = transcript.toLowerCase();
+        let extractedAnswer = transcript;
+        
+        // Remove palavras de ativação do início da frase
+        for (const activationWord of this.activationWords) {
+            const pattern = new RegExp(`^\\s*${activationWord.toLowerCase()}\\s*`, 'i');
+            if (pattern.test(lowerTranscript)) {
+                extractedAnswer = transcript.replace(pattern, '').trim();
+                console.log(`🔍 Removendo palavra de ativação "${activationWord}": "${extractedAnswer}"`);
+                break;
+            }
+        }
+        
+        return extractedAnswer;
+    }
+    
     passesContextualFilter(transcript) {
         const normalizedTranscript = this.normalizeText(transcript);
         
-        // 1. Evita repetições muito próximas
-        if (this.lastResult && this.isSimilarToLastResult(normalizedTranscript)) {
-            return false;
-        }
+        console.log(`🔍 Verificando filtro contextual para: "${normalizedTranscript}"`);
         
-        // 2. Filtro de ruído comum
+        // 1. Filtro de ruído comum
         if (this.isCommonNoise(normalizedTranscript)) {
+            console.log(`🔍 Filtro contextual: detectado como ruído comum`);
             return false;
         }
         
-        // 3. Filtro de palavras muito curtas
+        // 2. Filtro de palavras muito curtas
         const words = normalizedTranscript.split(' ').filter(w => w.length > 1);
         if (words.length === 0) {
+            console.log(`🔍 Filtro contextual: nenhuma palavra válida encontrada`);
             return false;
         }
         
+        // 3. Se tem palavra de ativação, extrair apenas a resposta
+        if (this.useActivationWord && this.hasActivationWord(transcript)) {
+            const extractedAnswer = this.extractAnswerFromActivation(transcript);
+            if (extractedAnswer && extractedAnswer.length >= 2) {
+                console.log(`🔍 Filtro contextual: resposta extraída "${extractedAnswer}" - PASSOU`);
+                return true;
+            }
+        }
+        
+        // 4. Para palavras simples sem ativação, ser mais permissivo
+        if (words.length === 1 && words[0].length >= 3) {
+            console.log(`🔍 Filtro contextual: palavra simples "${words[0]}" - PASSOU`);
+            return true;
+        }
+        
+        console.log(`🔍 Filtro contextual: PASSOU (palavras válidas: ${words.join(', ')})`);
         return true;
     }
     
@@ -272,16 +310,16 @@ class VoiceRecognitionMultiUser {
             .replace(/\s+/g, ' ') // Normaliza espaços
             .trim();
     }
-    
-    isSimilarToLastResult(transcript) {
+      isSimilarToLastResult(transcript) {
         if (!this.lastResult) return false;
         
         const lastNormalized = this.normalizeText(this.lastResult);
         const currentNormalized = this.normalizeText(transcript);
         
-        // Verifica similaridade simples
-        return lastNormalized === currentNormalized || 
-               this.calculateSimilarity(lastNormalized, currentNormalized) > 0.8;
+        const similarity = this.calculateSimilarity(lastNormalized, currentNormalized);
+        console.log(`🔍 Similaridade calculada: "${currentNormalized}" vs "${lastNormalized}" = ${similarity.toFixed(3)}`);
+          // Verifica similaridade simples (reduzido de 0.8 para 0.95 para ser muito menos agressivo)
+        return lastNormalized === currentNormalized || similarity > 0.95;
     }
     
     calculateSimilarity(str1, str2) {
@@ -477,14 +515,15 @@ class VoiceRecognitionMultiUser {
         console.log('gameState existe:', !!window.gameState);
         console.log('isProcessingAnswer:', window.gameState?.isProcessingAnswer);
         console.log('submitAnswer existe:', typeof submitAnswer);
-        
-        // Submete automaticamente se não estiver processando uma resposta
+          // Submete automaticamente se não estiver processando uma resposta
         if (!window.gameState?.isProcessingAnswer) {
             console.log('🎤 Submetendo automaticamente...');
             setTimeout(() => {
                 if (typeof submitAnswer === 'function') {
                     submitAnswer();
                     console.log('🎤 submitAnswer() executado com sucesso!');
+                    // Limpa o último resultado para permitir a mesma resposta novamente se necessário
+                    this.lastResult = '';
                 } else {
                     console.error('🎤 Função submitAnswer não encontrada!');
                     // Tenta submeter manualmente clicando no botão como fallback
@@ -492,16 +531,23 @@ class VoiceRecognitionMultiUser {
                     if (submitBtn && !submitBtn.disabled) {
                         submitBtn.click();
                         console.log('🎤 Fallback: clicou no botão submit');
+                        // Limpa o último resultado para permitir a mesma resposta novamente se necessário
+                        this.lastResult = '';
                     }
                 }
             }, 300);
         } else {
             console.log('🎤 Não submetendo - já processando uma resposta');
         }
-    }
-
-    // Método para ativar/desativar modo grupo
+    }    // Método para ativar/desativar modo grupo
     setGroupMode(enabled) {
+        console.log(`🎤 [MULTI-USER] setGroupMode chamado com: ${enabled}`);
+        console.log(`🎤 [MULTI-USER] Estado anterior:`, {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
+        
         this.groupMode = enabled;
         
         if (enabled) {
@@ -509,14 +555,20 @@ class VoiceRecognitionMultiUser {
             this.confidenceThreshold = Math.max(0.6, this.confidenceThreshold);
             this.submissionCooldown = 3000;
             this.useActivationWord = true;
-            console.log('🎤 Modo grupo ativado - filtros mais rigorosos');
+            console.log('🎤 [MULTI-USER] Modo grupo ativado - filtros mais rigorosos');
         } else {
             // Configurações mais permissivas para uso individual
             this.confidenceThreshold = Math.min(0.4, this.confidenceThreshold);
             this.submissionCooldown = 1000;
             this.useActivationWord = false;
-            console.log('🎤 Modo individual ativado - filtros mais permissivos');
+            console.log('🎤 [MULTI-USER] Modo individual ativado - filtros mais permissivos');
         }
+        
+        console.log(`🎤 [MULTI-USER] Estado novo:`, {
+            groupMode: this.groupMode,
+            useActivationWord: this.useActivationWord,
+            confidenceThreshold: this.confidenceThreshold
+        });
         
         this.updateGroupModeUI();
     }

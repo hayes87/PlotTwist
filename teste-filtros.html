@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Teste Específico - Filtros de Voz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .result.pass { background: #d4edda; color: #155724; }
+        .result.fail { background: #f8d7da; color: #721c24; }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover { background: #0056b3; }
+        .config-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .test-input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Teste Específico - Filtros de Voz</h1>
+
+    <div class="test-section">
+        <h2>⚙️ Configuração Atual</h2>
+        <div id="current-config" class="config-display">
+            Sistema não inicializado
+        </div>
+        <button class="button" onclick="initSystem()">Inicializar Sistema</button>
+        <button class="button" onclick="toggleGroupMode()">Toggle Modo Grupo</button>
+        <button class="button" onclick="toggleActivationWords()">Toggle Palavras de Ativação</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🎤 Teste de Filtros de Palavras de Ativação</h2>
+        <div id="activation-results"></div>
+        <button class="button" onclick="testActivationWords()">Testar Palavras de Ativação</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Teste de Filtros de Modo Grupo</h2>
+        <div id="group-results"></div>
+        <button class="button" onclick="testGroupModeFilters()">Testar Filtros de Grupo</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Teste Personalizado</h2>
+        <input type="text" id="custom-input" placeholder="Digite uma frase para testar" class="test-input">
+        <br>
+        <label>Confiança (0-1): <input type="number" id="confidence-input" value="0.8" min="0" max="1" step="0.1"></label>
+        <br>
+        <button class="button" onclick="testCustomPhrase()">Testar Frase</button>
+        <div id="custom-result"></div>
+    </div>
+
+    <script src="voice-recognition.js"></script>
+    <script src="voice-recognition-multiuser.js"></script>
+
+    <script>
+        let voiceSystem = null;
+
+        function initSystem() {
+            if (window.VoiceRecognition) {
+                voiceSystem = new VoiceRecognition();
+                window.voiceRecognition = voiceSystem;
+                updateConfig();
+                console.log('Sistema inicializado:', voiceSystem);
+            } else {
+                alert('VoiceRecognition não disponível');
+            }
+        }
+
+        function updateConfig() {
+            if (!voiceSystem) return;
+            
+            document.getElementById('current-config').innerHTML = `
+                Classe: ${voiceSystem.constructor.name}<br>
+                Modo Grupo: ${voiceSystem.groupMode}<br>
+                Palavras de Ativação: ${voiceSystem.useActivationWord}<br>
+                Confiança Mínima: ${voiceSystem.confidenceThreshold}<br>
+                Cooldown: ${voiceSystem.submissionCooldown}ms<br>
+                Palavras: [${voiceSystem.activationWords.join(', ')}]
+            `;
+        }
+
+        function toggleGroupMode() {
+            if (!voiceSystem) { alert('Sistema não inicializado'); return; }
+            voiceSystem.setGroupMode(!voiceSystem.groupMode);
+            updateConfig();
+        }
+
+        function toggleActivationWords() {
+            if (!voiceSystem) { alert('Sistema não inicializado'); return; }
+            voiceSystem.useActivationWord = !voiceSystem.useActivationWord;
+            updateConfig();
+        }
+
+        function testActivationWords() {
+            if (!voiceSystem) { alert('Sistema não inicializado'); return; }
+            
+            const testPhrases = [
+                'resposta batman',
+                'batman',
+                'eu sei que é o superman',
+                'superman',
+                'é o coringa',
+                'coringa',
+                'eh a mulher maravilha',
+                'mulher maravilha'
+            ];
+            
+            let results = '<h3>Resultados dos Testes de Palavras de Ativação:</h3>';
+            
+            testPhrases.forEach(phrase => {
+                const hasActivation = voiceSystem.hasActivationWord(phrase);
+                const shouldProcess = voiceSystem.shouldProcessSpeech(phrase, 0.8);
+                
+                results += `<div class="result ${shouldProcess ? 'pass' : 'fail'}">
+                    "${phrase}" → Ativação: ${hasActivation} | Processado: ${shouldProcess}
+                </div>`;
+            });
+            
+            document.getElementById('activation-results').innerHTML = results;
+        }
+
+        function testGroupModeFilters() {
+            if (!voiceSystem) { alert('Sistema não inicializado'); return; }
+            
+            // Testa com modo grupo desativado
+            voiceSystem.setGroupMode(false);
+            let results = '<h3>Modo Individual (filtros permissivos):</h3>';
+            
+            const testPhrases = ['batman', 'hmm', 'ah batman', 'texto muito longo para teste'];
+            
+            testPhrases.forEach(phrase => {
+                const shouldProcess = voiceSystem.shouldProcessSpeech(phrase, 0.3); // Confiança baixa
+                results += `<div class="result ${shouldProcess ? 'pass' : 'fail'}">
+                    "${phrase}" (conf: 0.3) → ${shouldProcess ? 'ACEITO' : 'REJEITADO'}
+                </div>`;
+            });
+            
+            // Testa com modo grupo ativado
+            voiceSystem.setGroupMode(true);
+            results += '<h3>Modo Grupo (filtros rigorosos):</h3>';
+            
+            testPhrases.forEach(phrase => {
+                const shouldProcess = voiceSystem.shouldProcessSpeech(phrase, 0.3); // Confiança baixa
+                results += `<div class="result ${shouldProcess ? 'pass' : 'fail'}">
+                    "${phrase}" (conf: 0.3) → ${shouldProcess ? 'ACEITO' : 'REJEITADO'}
+                </div>`;
+            });
+            
+            document.getElementById('group-results').innerHTML = results;
+            updateConfig();
+        }
+
+        function testCustomPhrase() {
+            if (!voiceSystem) { alert('Sistema não inicializado'); return; }
+            
+            const phrase = document.getElementById('custom-input').value;
+            const confidence = parseFloat(document.getElementById('confidence-input').value);
+            
+            if (!phrase) {
+                alert('Digite uma frase para testar');
+                return;
+            }
+            
+            console.log('Testando frase:', phrase, 'com confiança:', confidence);
+            
+            const hasActivation = voiceSystem.hasActivationWord(phrase);
+            const shouldProcess = voiceSystem.shouldProcessSpeech(phrase, confidence);
+            
+            const result = `
+                <h4>Resultado para: "${phrase}"</h4>
+                <div class="result ${shouldProcess ? 'pass' : 'fail'}">
+                    Confiança: ${confidence}<br>
+                    Tem palavra de ativação: ${hasActivation}<br>
+                    Modo grupo ativo: ${voiceSystem.groupMode}<br>
+                    Palavras de ativação obrigatórias: ${voiceSystem.useActivationWord}<br>
+                    <strong>Resultado: ${shouldProcess ? 'ACEITO ✅' : 'REJEITADO ❌'}</strong>
+                </div>
+            `;
+            
+            document.getElementById('custom-result').innerHTML = result;
+        }
+
+        // Intercepta console.log para debug
+        const originalLog = console.log;
+        console.log = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('🎤')) {
+                const logDiv = document.createElement('div');
+                logDiv.style.background = '#e3f2fd';
+                logDiv.style.padding = '5px';
+                logDiv.style.margin = '2px 0';
+                logDiv.style.fontSize = '12px';
+                logDiv.style.borderRadius = '3px';
+                logDiv.textContent = message;
+                document.body.appendChild(logDiv);
+            }
+            originalLog.apply(console, args);
+        };
+
+        // Auto-inicializa
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initSystem, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Controles de Voz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="voice-styles.css">
+    <link rel="stylesheet" href="voice-multiuser-styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .status-panel {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .log-panel {
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .test-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-btn:hover {
+            background: #1976d2;
+        }
+        .test-btn.active {
+            background: #4caf50;
+        }
+        .answer-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        #answer-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .setup-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Teste - Controles de Voz</h1>
+    
+    <div class="test-container">
+        <h2>Status do Sistema</h2>
+        <div class="status-panel" id="status-panel">
+            Inicializando...
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Controles</h2>
+        <div class="test-buttons">
+            <button class="test-btn" onclick="toggleGroupMode()">Toggle Modo Grupo</button>
+            <button class="test-btn" onclick="toggleActivationWords()">Toggle Palavras de Ativação</button>
+            <button class="test-btn" onclick="showCurrentSettings()">Mostrar Configurações</button>
+            <button class="test-btn" onclick="testVoiceRecognition()">Testar Reconhecimento</button>
+            <button class="test-btn" onclick="activateMultiUser()">Ativar Multi-Usuário</button>
+            <button class="test-btn" onclick="deactivateMultiUser()">Desativar Multi-Usuário</button>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Campo de Resposta (para teste)</h2>
+        <div class="answer-container">
+            <input type="text" id="answer-input" placeholder="Fale algo ou digite aqui...">
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Configurações de Voz</h2>
+        <div class="setup-container">
+            <!-- Os controles serão criados aqui pelo JavaScript -->
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Log de Debug</h2>
+        <div class="log-panel" id="log-panel">
+            Logs aparecerão aqui...
+        </div>
+    </div>
+
+    <!-- Scripts necessários -->
+    <script src="voice-recognition.js"></script>
+    <script src="voice-recognition-multiuser.js"></script>
+    <script src="multiuser-controls.js"></script>
+
+    <script>
+        let voiceSystem = null;
+        let groupModeActive = false;
+        let activationWordsActive = false;
+        
+        // Intercepta console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function logToPanel(message, type = 'log') {
+            const panel = document.getElementById('log-panel');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f44336' : type === 'warn' ? '#ff9800' : '#4caf50';
+            
+            panel.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            panel.scrollTop = panel.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            logToPanel('LOG: ' + args.join(' '), 'log');
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            logToPanel('ERROR: ' + args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            logToPanel('WARN: ' + args.join(' '), 'warn');
+            originalWarn.apply(console, args);
+        };
+        
+        function updateStatus() {
+            const panel = document.getElementById('status-panel');
+            const system = window.voiceRecognition;
+            
+            if (system) {
+                panel.innerHTML = `
+                    <h3>Sistema Ativo: ${system.constructor.name}</h3>
+                    <div><strong>Modo Grupo:</strong> ${system.groupMode ? 'ATIVO' : 'INATIVO'}</div>
+                    <div><strong>Palavras de Ativação:</strong> ${system.useActivationWord ? 'ATIVAS' : 'INATIVAS'}</div>
+                    <div><strong>Confiança Mínima:</strong> ${(system.confidenceThreshold * 100).toFixed(0)}%</div>
+                    <div><strong>Cooldown:</strong> ${system.submissionCooldown}ms</div>
+                    <div><strong>Listening:</strong> ${system.isListening ? 'SIM' : 'NÃO'}</div>
+                    <div><strong>Game Active:</strong> ${system.gameActive ? 'SIM' : 'NÃO'}</div>
+                    <div><strong>Palavras de Ativação:</strong> ${system.activationWords.join(', ')}</div>
+                `;
+            } else {
+                panel.innerHTML = '<div style="color: red;">Sistema não inicializado</div>';
+            }
+        }
+        
+        function toggleGroupMode() {
+            if (window.voiceRecognition && window.voiceRecognition.setGroupMode) {
+                groupModeActive = !groupModeActive;
+                window.voiceRecognition.setGroupMode(groupModeActive);
+                logToPanel(`Modo grupo: ${groupModeActive ? 'ATIVADO' : 'DESATIVADO'}`);
+                updateStatus();
+            } else {
+                logToPanel('ERROR: setGroupMode não disponível', 'error');
+            }
+        }
+        
+        function toggleActivationWords() {
+            if (window.voiceRecognition) {
+                activationWordsActive = !activationWordsActive;
+                window.voiceRecognition.useActivationWord = activationWordsActive;
+                logToPanel(`Palavras de ativação: ${activationWordsActive ? 'ATIVADAS' : 'DESATIVADAS'}`);
+                updateStatus();
+            } else {
+                logToPanel('ERROR: Sistema de voz não disponível', 'error');
+            }
+        }
+        
+        function showCurrentSettings() {
+            if (window.voiceRecognition) {
+                const settings = {
+                    groupMode: window.voiceRecognition.groupMode,
+                    useActivationWord: window.voiceRecognition.useActivationWord,
+                    confidenceThreshold: window.voiceRecognition.confidenceThreshold,
+                    submissionCooldown: window.voiceRecognition.submissionCooldown,
+                    activationWords: window.voiceRecognition.activationWords
+                };
+                logToPanel('Configurações atuais: ' + JSON.stringify(settings, null, 2));
+            }
+        }
+        
+        function testVoiceRecognition() {
+            if (window.voiceRecognition) {
+                // Simula início do jogo para ativar reconhecimento
+                window.voiceRecognition.gameActive = true;
+                if (window.voiceRecognition.startGameListening) {
+                    window.voiceRecognition.startGameListening();
+                    logToPanel('Reconhecimento de voz iniciado para teste');
+                }
+                updateStatus();
+            } else {
+                logToPanel('ERROR: Sistema de voz não disponível', 'error');
+            }
+        }
+        
+        function activateMultiUser() {
+            if (typeof enableMultiUserVoice === 'function') {
+                enableMultiUserVoice();
+                logToPanel('Sistema multi-usuário ativado');
+                updateStatus();
+            } else {
+                logToPanel('ERROR: enableMultiUserVoice não disponível', 'error');
+            }
+        }
+        
+        function deactivateMultiUser() {
+            if (typeof disableMultiUserVoice === 'function') {
+                disableMultiUserVoice();
+                logToPanel('Sistema multi-usuário desativado');
+                updateStatus();
+            } else {
+                logToPanel('ERROR: disableMultiUserVoice não disponível', 'error');
+            }
+        }
+        
+        // Função fictícia para simular submitAnswer
+        window.submitAnswer = function() {
+            logToPanel('submitAnswer() chamado - resposta enviada!');
+        };
+        
+        // Função fictícia para gameState
+        window.gameState = {
+            isProcessingAnswer: false
+        };
+        
+        // Função fictícia para showNotification
+        window.showNotification = function(message, type, duration) {
+            logToPanel(`NOTIFICATION [${type}]: ${message}`);
+        };
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            logToPanel('Página carregada, inicializando sistema de voz...');
+            
+            // Dá um tempo para o sistema inicializar
+            setTimeout(() => {
+                if (window.voiceRecognition) {
+                    logToPanel('Sistema de voz inicializado com sucesso');
+                    voiceSystem = window.voiceRecognition;
+                } else {
+                    logToPanel('Criando nova instância de VoiceRecognition...');
+                    voiceSystem = new VoiceRecognition();
+                    window.voiceRecognition = voiceSystem;
+                }
+                updateStatus();
+                
+                // Atualiza status a cada 2 segundos
+                setInterval(updateStatus, 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
