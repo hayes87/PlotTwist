@@ -414,10 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Botões da tela inicial
     document.getElementById('start-game-btn').addEventListener('click', startGame);
-    document.getElementById('load-game-btn').addEventListener('click', loadGame);
-    document.getElementById('toggle-theme-btn').addEventListener('click', toggleTheme);
+    document.getElementById('load-game-btn').addEventListener('click', loadGame);    document.getElementById('toggle-theme-btn').addEventListener('click', toggleTheme);
     document.getElementById('reset-cards-btn').addEventListener('click', () => gameState.resetUsedCards());
-    document.getElementById('debug-game-btn').addEventListener('click', debugGame);    // Botões de dificuldade
+    // Botões de dificuldade
     const difficultyButtons = document.querySelectorAll('.difficulty-btn');
     const difficultyDescriptions = {
         "easy": "Filmes e séries populares e fáceis de adivinhar",
@@ -429,8 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const difficultyDescription = document.getElementById('difficulty-description');
-    
-    difficultyButtons.forEach(button => {
+      difficultyButtons.forEach(button => {
         button.addEventListener('click', () => {
             // Remove a classe 'selected' de todos os botões
             difficultyButtons.forEach(btn => btn.classList.remove('selected'));
@@ -441,20 +439,21 @@ document.addEventListener('DOMContentLoaded', () => {
             gameState.difficulty = difficulty;
             // Atualiza a descrição
             difficultyDescription.textContent = difficultyDescriptions[difficulty];
+            // Grava a seleção de dificuldade
+            recordButtonSelection('difficulty', difficulty);
         });
     });
     
     // Seleciona a dificuldade média por padrão
     document.querySelector('[data-difficulty="medium"]').classList.add('selected');
-    difficultyDescription.textContent = difficultyDescriptions["medium"];
-
-    // Botões de número de rodadas
+    difficultyDescription.textContent = difficultyDescriptions["medium"];    // Botões de número de rodadas
     const roundsButtons = document.querySelectorAll('.rounds-btn');
     roundsButtons.forEach(button => {
         button.addEventListener('click', () => {
             roundsButtons.forEach(btn => btn.classList.remove('selected'));
             button.classList.add('selected');
             gameState.totalRounds = parseInt(button.dataset.rounds);
+            recordButtonSelection('rounds', button.dataset.rounds);
         });
     });
 
@@ -474,10 +473,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') {
             submitAnswer();
         }
+    });      // Botões da tela de resultado
+    document.getElementById('new-game-btn').addEventListener('click', () => {
+        recordButtonSelection('result_action', 'new_game');
+        setupNewGame();
     });
-      // Botões da tela de resultado
-    document.getElementById('new-game-btn').addEventListener('click', setupNewGame);
-    document.getElementById('return-menu-btn').addEventListener('click', backToMenu);
+    document.getElementById('return-menu-btn').addEventListener('click', () => {
+        recordButtonSelection('result_action', 'return_menu');
+        backToMenu();
+    });
     
     // Botões de seleção de dificuldade (modo escolha livre)
     const difficultySelectionButtons = document.querySelectorAll('.difficulty-selection-btn');
@@ -500,11 +504,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Nomes de equipes divertidos em português
+const sillyTeamNames = [
+    "Os Papagaios Falantes",
+    "Esquadrão Abacaxi",
+    "Guerreiros do Sofá",
+    "Turma da Pipoca",
+    "Os Macarronadas",
+    "Dragões de Pijama",
+    "Liga dos Preguiçosos",
+    "Força-Tarefa Cafézinho",
+    "Esquadrão Anti-Spoiler",
+    "Os Mestres do Controle Remoto",
+    "Tropa do Biscoito",
+    "Aliança da Soneca",
+    "Batalhão das Coxinhas",
+    "União dos Procrastinadores",
+    "Vingadores do Netflix"
+];
+
+// Função para obter um nome de equipe aleatório
+function getRandomTeamName(usedNames = []) {
+    const availableNames = sillyTeamNames.filter(name => !usedNames.includes(name));
+    if (availableNames.length === 0) return "Equipe Misteriosa";
+    return availableNames[Math.floor(Math.random() * availableNames.length)];
+}
+
+// Função para gravar seleção de botão
+function recordButtonSelection(buttonType, buttonValue) {
+    try {
+        const selections = JSON.parse(localStorage.getItem('perfilButtonSelections') || '{}');
+        selections[buttonType] = {
+            value: buttonValue,
+            timestamp: Date.now(),
+            count: (selections[buttonType]?.count || 0) + 1
+        };
+        localStorage.setItem('perfilButtonSelections', JSON.stringify(selections));
+    } catch (error) {
+        console.log('Erro ao salvar seleção de botão:', error);
+    }
+}
+
 // Funções principais do jogo
 function startGame() {
     // Obtém os nomes das equipes
-    const team1Name = document.getElementById('team1').value.trim() || 'Equipe 1';
-    const team2Name = document.getElementById('team2').value.trim() || 'Equipe 2';
+    const team1Input = document.getElementById('team1').value.trim();
+    const team2Input = document.getElementById('team2').value.trim();
+    
+    let team1Name, team2Name;
+    
+    if (!team1Input && !team2Input) {
+        // Se ambos os campos estão vazios, usa nomes aleatórios diferentes
+        team1Name = getRandomTeamName();
+        team2Name = getRandomTeamName([team1Name]);
+    } else if (!team1Input) {
+        // Se apenas o primeiro campo está vazio
+        team1Name = getRandomTeamName([team2Input]);
+    } else if (!team2Input) {
+        // Se apenas o segundo campo está vazio
+        team2Name = getRandomTeamName([team1Input]);
+    } else {
+        // Se ambos os campos têm valores
+        team1Name = team1Input;
+        team2Name = team2Input;
+    }
     
     // Inicializa o estado do jogo
     gameState = new GameState();

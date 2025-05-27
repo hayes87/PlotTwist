@@ -104,8 +104,7 @@ advanceGame = function() {
 
 // Add event listeners for timer buttons
 document.addEventListener('DOMContentLoaded', function() {
-    const timerButtons = document.querySelectorAll('.timer-btn');
-    timerButtons.forEach(button => {
+    const timerButtons = document.querySelectorAll('.timer-btn');    timerButtons.forEach(button => {
         button.addEventListener('click', () => {
             // Remove the 'selected' class from all buttons
             timerButtons.forEach(btn => btn.classList.remove('selected'));
@@ -113,6 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
             button.classList.add('selected');
             // Set the time limit
             gameState.timeLimit = parseInt(button.dataset.time);
+            // Record the button selection
+            recordButtonSelection('timer', button.dataset.time);
         });
     });
     
