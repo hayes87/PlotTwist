@@ -45,32 +45,28 @@ class SimpleMultiUserControls {
                 status.classList.remove('active');
             }
         });
-    }
-
-    activateMultiUserMode() {
+    }    activateMultiUserMode() {
         try {
-            if (typeof enableMultiUserVoice === 'function') {
-                enableMultiUserVoice();
+            if (window.voiceRecognition && window.voiceRecognition.setGroupMode) {
+                window.voiceRecognition.setGroupMode(true);
                 console.log('🎤 Modo multi-usuário ativado');
                 
                 if (window.showNotification) {
                     showNotification('🎤 Modo Grupo Ativado - Filtros rigorosos habilitados', 'success', 3000);
                 }
             } else {
-                console.warn('🎤 Função enableMultiUserVoice não encontrada');
+                console.warn('🎤 Sistema de reconhecimento de voz não encontrado');
                 if (window.showNotification) {
-                    showNotification('🎤 Carregue primeiro o voice-recognition-multiuser.js', 'warning', 5000);
+                    showNotification('🎤 Sistema de voz não está disponível', 'warning', 5000);
                 }
             }
         } catch (error) {
             console.error('Erro ao ativar modo multi-usuário:', error);
         }
-    }
-
-    deactivateMultiUserMode() {
+    }    deactivateMultiUserMode() {
         try {
-            if (typeof disableMultiUserVoice === 'function') {
-                disableMultiUserVoice();
+            if (window.voiceRecognition && window.voiceRecognition.setGroupMode) {
+                window.voiceRecognition.setGroupMode(false);
                 console.log('🎤 Modo multi-usuário desativado');
                 
                 if (window.showNotification) {

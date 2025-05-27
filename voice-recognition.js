@@ -422,13 +422,14 @@ class VoiceRecognition {    constructor() {
             this.showNotSupportedMessage();
             return;
         }
-        
-        if (this.isListening) {
+          if (this.isListening) {
             this.stopListening();
         } else {
             this.startListening();
         }
-    }    startListening() {
+    }
+    
+    startListening() {
         if (!this.isSupported || this.isListening) return;
         
         // Se já temos permissão, inicia diretamente
@@ -451,12 +452,13 @@ class VoiceRecognition {    constructor() {
                         console.error('Erro ao acessar o microfone:', error);
                         this.showMicrophoneError();
                     });
-            } catch (error) {
-                console.error('Erro ao iniciar reconhecimento:', error);
+            } catch (error) {                console.error('Erro ao iniciar reconhecimento:', error);
                 this.handleVoiceError('not-allowed');
             }
         }
-    }    // Novo método para reconhecimento contínuo
+    }
+    
+    // Novo método para reconhecimento contínuo
     async startContinuousListening() {
         if (!this.isSupported || !this.continuousMode) return;
         
@@ -480,23 +482,25 @@ class VoiceRecognition {    constructor() {
                 // Permissão ainda não foi decidida, solicita uma vez
                 console.log('🎤 Solicitando permissão do microfone...');
                 this.requestMicrophonePermissionForRound();
-            }
-        }
+            }        }
     }
-      stopContinuousListening() {
+    
+    stopContinuousListening() {
         this.gameActive = false;
         this.restartAttempts = 0; // Reset contador quando parar manualmente
         
         if (this.recognition && this.isListening) {
             this.recognition.stop();
             console.log('🎤 Reconhecimento contínuo parado');
-        }
-    }
-      stopListening() {
+        }    }
+    
+    stopListening() {
         if (this.recognition && this.isListening) {
             this.recognition.stop();
         }
-    }    // Método seguro para iniciar reconhecimento evitando loops de restart
+    }
+    
+    // Método seguro para iniciar reconhecimento evitando loops de restart
     startRecognitionSafely() {
         if (!this.isSupported || this.isListening) return;
         
@@ -764,10 +768,10 @@ class VoiceRecognition {    constructor() {
         if (this.voiceButton) {
             this.voiceButton.style.display = enabled ? 'block' : 'none';
         }
-        
-        localStorage.setItem('voiceEnabled', enabled);
+          localStorage.setItem('voiceEnabled', enabled);
     }
-      loadSettings() {
+    
+    loadSettings() {
         // Carrega configurações do localStorage
         const saved = {
             enabled: localStorage.getItem('voiceEnabled') !== 'false',
@@ -813,9 +817,10 @@ class VoiceRecognition {    constructor() {
         }
         
         if (window.showNotification) {
-            showNotification(message, 'info');
-        }
-    }    // Métodos públicos para controle do jogo
+            showNotification(message, 'info');        }
+    }
+    
+    // Métodos públicos para controle do jogo
     startGameListening() {
         if (this.isSupported && this.continuousMode) {
             this.startContinuousListening();
@@ -832,12 +837,12 @@ class VoiceRecognition {    constructor() {
             this.startListening();
         }
     }
-    
-    // Método público para verificar se está ouvindo
+      // Método público para verificar se está ouvindo
     isCurrentlyListening() {
         return this.isListening;
     }
-      // Método público para obter o último resultado
+    
+    // Método público para obter o último resultado
     getLastResult() {
         return this.lastResult;
     }
@@ -902,33 +907,70 @@ class VoiceRecognition {    constructor() {
         
         return threshold;
     }
-    
-    hasActivationWord(transcript) {
+      hasActivationWord(transcript) {
         const lowerTranscript = transcript.toLowerCase();
         return this.activationWords.some(word => 
             lowerTranscript.includes(word.toLowerCase())
         );
     }
     
+    extractAnswerFromActivation(transcript) {
+        const lowerTranscript = transcript.toLowerCase();
+        let extractedAnswer = transcript;
+        
+        // Remove palavras de ativação do início da frase
+        for (const activationWord of this.activationWords) {
+            const pattern = new RegExp(`^\\s*${activationWord.toLowerCase()}\\s*`, 'i');
+            if (pattern.test(lowerTranscript)) {
+                extractedAnswer = transcript.replace(pattern, '').trim();
+                console.log(`🔍 Removendo palavra de ativação "${activationWord}": "${extractedAnswer}"`);
+                break;
+            }
+        }
+        
+        return extractedAnswer;
+    }
+    
     passesContextualFilter(transcript) {
         const normalizedTranscript = this.normalizeText(transcript);
         
+        console.log(`🔍 Verificando filtro contextual para: "${normalizedTranscript}"`);
+        
         // 1. Evita repetições muito próximas
         if (this.lastResult && this.isSimilarToLastResult(normalizedTranscript)) {
+            console.log(`🔍 Filtro contextual: muito similar ao último resultado "${this.lastResult}"`);
             return false;
         }
         
         // 2. Filtro de ruído comum
         if (this.isCommonNoise(normalizedTranscript)) {
+            console.log(`🔍 Filtro contextual: detectado como ruído comum`);
             return false;
         }
         
         // 3. Filtro de palavras muito curtas
         const words = normalizedTranscript.split(' ').filter(w => w.length > 1);
         if (words.length === 0) {
+            console.log(`🔍 Filtro contextual: nenhuma palavra válida encontrada`);
             return false;
         }
         
+        // 4. Se tem palavra de ativação, extrair apenas a resposta
+        if (this.useActivationWord && this.hasActivationWord(transcript)) {
+            const extractedAnswer = this.extractAnswerFromActivation(transcript);
+            if (extractedAnswer && extractedAnswer.length >= 2) {
+                console.log(`🔍 Filtro contextual: resposta extraída "${extractedAnswer}" - PASSOU`);
+                return true;
+            }
+        }
+        
+        // 5. Para palavras simples sem ativação, ser mais permissivo
+        if (words.length === 1 && words[0].length >= 3) {
+            console.log(`🔍 Filtro contextual: palavra simples "${words[0]}" - PASSOU`);
+            return true;
+        }
+        
+        console.log(`🔍 Filtro contextual: PASSOU (palavras válidas: ${words.join(', ')})`);
         return true;
     }
     
@@ -1014,10 +1056,9 @@ class VoiceRecognition {    constructor() {
     // Método para ativar/desativar modo grupo
     setGroupMode(enabled) {
         this.groupMode = enabled;
-        
-        if (enabled) {
+          if (enabled) {
             // Configurações mais restritivas para grupo
-            this.confidenceThreshold = Math.max(0.6, this.confidenceThreshold);
+            this.confidenceThreshold = Math.max(0.5, this.confidenceThreshold); // Reduzido de 0.6 para 0.5
             this.submissionCooldown = 3000;
             this.useActivationWord = true;
             console.log('🎤 Modo grupo ativado - filtros mais rigorosos');

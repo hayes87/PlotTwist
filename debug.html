@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Voice Recognition</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-panel { 
+            border: 2px solid #007bff; 
+            padding: 20px; 
+            margin: 20px 0; 
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .test-button { 
+            background-color: #28a745; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        .test-button:hover { background-color: #218838; }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px;
+        }
+        .status.success { background-color: #d4edda; color: #155724; }
+        .status.error { background-color: #f8d7da; color: #721c24; }
+        .status.info { background-color: #d1ecf1; color: #0c5460; }
+        .answer-container { margin: 20px 0; }
+        #answer-input { 
+            width: 100%; 
+            padding: 10px; 
+            font-size: 16px; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .console-output {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug do Sistema de Reconhecimento de Voz</h1>
+    
+    <div class="debug-panel">
+        <h3>🔍 Status do Sistema</h3>
+        <div id="system-status" class="status info">Carregando...</div>
+        
+        <h3>🧪 Testes Disponíveis</h3>
+        <button class="test-button" onclick="runDiagnostics()">🔍 Diagnóstico Completo</button>
+        <button class="test-button" onclick="testMicrophonePermission()">🎤 Testar Permissão</button>
+        <button class="test-button" onclick="testVoiceRecognition()">🗣️ Testar Reconhecimento</button>
+        <button class="test-button" onclick="simulateGameStart()">🎮 Simular Início do Jogo</button>
+        <button class="test-button" onclick="toggleGroupMode()">👥 Alternar Modo Grupo</button>
+        <button class="test-button" onclick="clearConsole()">🧹 Limpar Console</button>
+    </div>
+    
+    <div class="answer-container">
+        <h3>📝 Campo de Resposta (Simulação)</h3>
+        <input type="text" id="answer-input" placeholder="Suas respostas aparecerão aqui...">
+    </div>
+    
+    <div class="debug-panel">
+        <h3>📊 Console Output</h3>
+        <div id="console-output" class="console-output"></div>
+    </div>
+
+    <!-- Mock functions -->
+    <script>
+        let groupModeActive = false;
+        
+        // Mock notification system
+        window.showNotification = function(message, type, autoHide, duration) {
+            logToConsole(`🔔 NOTIFICATION [${type}]: ${message}`, 'notification');
+        };
+        
+        // Mock submit function
+        window.submitAnswer = function() {
+            const input = document.getElementById('answer-input');
+            logToConsole(`📤 SUBMIT: "${input.value}"`, 'submit');
+            input.value = '';
+        };
+        
+        // Mock game state
+        window.gameState = {
+            isProcessingAnswer: false
+        };
+        
+        function logToConsole(message, type = 'log') {
+            const console_output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                'log': '#d4d4d4',
+                'error': '#f14c4c',
+                'warn': '#ffcc02',
+                'info': '#3794ff',
+                'success': '#23d18b',
+                'notification': '#ff6b6b',
+                'submit': '#ffa500'
+            };
+            
+            const color = colors[type] || colors.log;
+            console_output.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            console_output.scrollTop = console_output.scrollHeight;
+        }
+        
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '';
+        }
+        
+        function updateSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            
+            if (window.voiceRecognition) {
+                if (window.voiceRecognition.isSupported) {
+                    statusDiv.innerHTML = '✅ Sistema de voz carregado e funcionando';
+                    statusDiv.className = 'status success';
+                } else {
+                    statusDiv.innerHTML = '❌ Navegador não suporta reconhecimento de voz';
+                    statusDiv.className = 'status error';
+                }
+            } else {
+                statusDiv.innerHTML = '⚠️ Sistema de voz não encontrado';
+                statusDiv.className = 'status error';
+            }
+        }
+        
+        function runDiagnostics() {
+            logToConsole('🔍 Iniciando diagnóstico completo...', 'info');
+            
+            // Check browser support
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                logToConsole('✅ Navegador suporta Web Speech API', 'success');
+            } else {
+                logToConsole('❌ Navegador NÃO suporta Web Speech API', 'error');
+                return;
+            }
+            
+            // Check voiceRecognition instance
+            if (window.voiceRecognition) {
+                logToConsole('✅ Instância voiceRecognition encontrada', 'success');
+                logToConsole(`   📊 isSupported: ${window.voiceRecognition.isSupported}`, 'info');
+                logToConsole(`   📊 microphonePermissionGranted: ${window.voiceRecognition.microphonePermissionGranted}`, 'info');
+                logToConsole(`   📊 isListening: ${window.voiceRecognition.isListening}`, 'info');
+                logToConsole(`   📊 gameActive: ${window.voiceRecognition.gameActive}`, 'info');
+                logToConsole(`   📊 continuousMode: ${window.voiceRecognition.continuousMode}`, 'info');
+                logToConsole(`   📊 confidenceThreshold: ${window.voiceRecognition.confidenceThreshold}`, 'info');
+                logToConsole(`   📊 groupMode: ${window.voiceRecognition.groupMode}`, 'info');
+                
+                // Check recognition object
+                if (window.voiceRecognition.recognition) {
+                    logToConsole('✅ Objeto SpeechRecognition criado', 'success');
+                } else {
+                    logToConsole('❌ Objeto SpeechRecognition NÃO encontrado', 'error');
+                }
+                
+                // Check DOM elements
+                if (window.voiceRecognition.answerInput) {
+                    logToConsole('✅ Campo de resposta encontrado', 'success');
+                } else {
+                    logToConsole('⚠️ Campo de resposta não encontrado', 'warn');
+                }
+                
+            } else {
+                logToConsole('❌ Instância voiceRecognition NÃO encontrada', 'error');
+            }
+            
+            // Check global functions
+            const functions = ['initializeVoiceForGame', 'isVoiceActive', 'getVoiceStatus'];
+            functions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    logToConsole(`✅ Função ${funcName} disponível`, 'success');
+                } else {
+                    logToConsole(`❌ Função ${funcName} NÃO disponível`, 'error');
+                }
+            });
+            
+            logToConsole('🔍 Diagnóstico completo finalizado', 'info');
+            updateSystemStatus();
+        }
+        
+        async function testMicrophonePermission() {
+            logToConsole('🎤 Testando permissão do microfone...', 'info');
+            
+            if (!window.voiceRecognition) {
+                logToConsole('❌ voiceRecognition não disponível', 'error');
+                return;
+            }
+            
+            try {
+                const permission = await window.voiceRecognition.checkMicrophonePermission();
+                logToConsole(`📊 Status da permissão: ${permission}`, 'info');
+                
+                if (permission === true) {
+                    logToConsole('✅ Permissão concedida', 'success');
+                } else if (permission === false) {
+                    logToConsole('❌ Permissão negada', 'error');
+                } else {
+                    logToConsole('⚠️ Permissão ainda não decidida', 'warn');
+                    
+                    // Solicitar permissão
+                    logToConsole('🎤 Solicitando permissão...', 'info');
+                    await window.voiceRecognition.requestMicrophonePermission();
+                    
+                    // Verificar novamente
+                    const newPermission = await window.voiceRecognition.checkMicrophonePermission();
+                    logToConsole(`📊 Nova status da permissão: ${newPermission}`, 'info');
+                }
+            } catch (error) {
+                logToConsole(`❌ Erro ao testar permissão: ${error.message}`, 'error');
+            }
+        }
+        
+        function testVoiceRecognition() {
+            logToConsole('🗣️ Testando reconhecimento de voz...', 'info');
+            
+            if (!window.voiceRecognition) {
+                logToConsole('❌ voiceRecognition não disponível', 'error');
+                return;
+            }
+            
+            if (!window.voiceRecognition.isSupported) {
+                logToConsole('❌ Reconhecimento de voz não suportado', 'error');
+                return;
+            }
+            
+            // Start continuous listening
+            logToConsole('🎤 Iniciando escuta contínua...', 'info');
+            window.voiceRecognition.gameActive = true;
+            window.voiceRecognition.startContinuousListening();
+            
+            // Check status after a delay
+            setTimeout(() => {
+                if (window.voiceRecognition.isListening) {
+                    logToConsole('✅ Escuta ativa - fale algo para testar!', 'success');
+                } else {
+                    logToConsole('❌ Falha ao iniciar escuta', 'error');
+                }
+            }, 2000);
+        }
+        
+        function simulateGameStart() {
+            logToConsole('🎮 Simulando início do jogo...', 'info');
+            
+            if (!window.voiceRecognition) {
+                logToConsole('❌ voiceRecognition não disponível', 'error');
+                return;
+            }
+            
+            // Call the game integration function
+            if (typeof window.initializeVoiceForGame === 'function') {
+                const result = window.initializeVoiceForGame();
+                logToConsole(`📊 Resultado da integração: ${result}`, 'info');
+            }
+            
+            // Start game listening
+            if (window.voiceRecognition.startGameListening) {
+                window.voiceRecognition.startGameListening();
+                logToConsole('🎤 Reconhecimento do jogo iniciado', 'success');
+            }
+            
+            // Check status
+            setTimeout(() => {
+                const status = window.getVoiceStatus ? window.getVoiceStatus() : 'unknown';
+                logToConsole(`📊 Status do jogo: ${status}`, 'info');
+            }, 1000);
+        }
+        
+        function toggleGroupMode() {
+            if (!window.voiceRecognition) {
+                logToConsole('❌ voiceRecognition não disponível', 'error');
+                return;
+            }
+            
+            groupModeActive = !groupModeActive;
+            
+            if (window.voiceRecognition.setGroupMode) {
+                window.voiceRecognition.setGroupMode(groupModeActive);
+                logToConsole(`👥 Modo grupo: ${groupModeActive ? 'ATIVADO' : 'DESATIVADO'}`, 'info');
+            } else {
+                logToConsole('❌ Função setGroupMode não disponível', 'error');
+            }
+        }
+        
+        // Intercept console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            logToConsole('LOG: ' + args.join(' '), 'log');
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            logToConsole('ERROR: ' + args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            logToConsole('WARN: ' + args.join(' '), 'warn');
+            originalWarn.apply(console, args);
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            logToConsole('🚀 Debug page loaded', 'info');
+            
+            // Wait for voice recognition to load
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (window.voiceRecognition) {
+                    clearInterval(checkInterval);
+                    logToConsole('✅ Sistema de voz detectado!', 'success');
+                    updateSystemStatus();
+                    runDiagnostics();
+                } else if (attempts >= 10) {
+                    clearInterval(checkInterval);
+                    logToConsole('❌ Timeout: Sistema de voz não carregado', 'error');
+                    updateSystemStatus();
+                }
+            }, 1000);
+        });
+    </script>
+    
+    <!-- Load voice recognition -->
+    <script src="voice-recognition.js"></script>
+    <script src="debug-voice.js"></script>
+</body>
+</html>

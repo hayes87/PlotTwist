@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Reconhecimento de Voz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .status.success { background-color: #d4edda; color: #155724; }
+        .status.error { background-color: #f8d7da; color: #721c24; }
+        .status.info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .answer-container {
+            margin: 20px 0;
+        }
+        #answer-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .console-log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Teste de Reconhecimento de Voz</h1>
+    
+    <div class="test-container">
+        <h3>Estado do Sistema</h3>
+        <div id="system-status" class="status info">Carregando...</div>
+        <button onclick="checkSystemStatus()" class="btn-primary">Verificar Status</button>
+        <button onclick="requestPermission()" class="btn-success">Solicitar Permissão</button>
+    </div>
+    
+    <div class="test-container">
+        <h3>Controles de Teste</h3>
+        <button onclick="startListening()" class="btn-success">🎤 Iniciar Escuta</button>
+        <button onclick="stopListening()" class="btn-danger">⏹️ Parar Escuta</button>
+        <button onclick="toggleGroupMode()" class="btn-primary" id="group-toggle">Ativar Modo Grupo</button>
+    </div>
+    
+    <div class="answer-container">
+        <h3>Campo de Resposta (Simulação)</h3>
+        <input type="text" id="answer-input" placeholder="Suas respostas aparecerão aqui...">
+        <button onclick="submitAnswer()" class="btn-primary" id="submit-btn">Enviar</button>
+    </div>
+    
+    <div class="test-container">
+        <h3>Log do Console</h3>
+        <div id="console-log" class="console-log"></div>
+        <button onclick="clearLog()" class="btn-danger">Limpar Log</button>
+    </div>
+
+    <!-- Mock do sistema de notificações -->
+    <script>
+        let groupMode = false;
+        
+        // Mock da função showNotification
+        window.showNotification = function(message, type, duration) {
+            addToLog(`NOTIFICAÇÃO [${type}]: ${message}`);
+        };
+        
+        // Mock da função submitAnswer
+        window.submitAnswer = function() {
+            const input = document.getElementById('answer-input');
+            addToLog(`SUBMISSÃO: "${input.value}"`);
+            input.value = '';
+        };
+        
+        // Mock do gameState
+        window.gameState = {
+            isProcessingAnswer: false
+        };
+        
+        function addToLog(message) {
+            const log = document.getElementById('console-log');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('console-log').innerHTML = '';
+        }
+        
+        function checkSystemStatus() {
+            const status = document.getElementById('system-status');
+            
+            if (window.voiceRecognition) {
+                if (window.voiceRecognition.isSupported) {
+                    status.innerHTML = '✅ Sistema de voz carregado e suportado';
+                    status.className = 'status success';
+                    addToLog('Sistema de voz: SUPORTADO');
+                    addToLog(`Microfone: ${window.voiceRecognition.microphonePermissionGranted ? 'PERMITIDO' : 'SEM PERMISSÃO'}`);
+                    addToLog(`Escutando: ${window.voiceRecognition.isListening ? 'SIM' : 'NÃO'}`);
+                    addToLog(`Jogo ativo: ${window.voiceRecognition.gameActive ? 'SIM' : 'NÃO'}`);
+                } else {
+                    status.innerHTML = '❌ Navegador não suporta reconhecimento de voz';
+                    status.className = 'status error';
+                }
+            } else {
+                status.innerHTML = '⚠️ Sistema de voz não carregado';
+                status.className = 'status error';
+            }
+        }
+        
+        function requestPermission() {
+            if (window.voiceRecognition) {
+                addToLog('Solicitando permissão do microfone...');
+                window.voiceRecognition.requestMicrophonePermission();
+            } else {
+                addToLog('ERRO: Sistema de voz não disponível');
+            }
+        }
+        
+        function startListening() {
+            if (window.voiceRecognition) {
+                addToLog('Iniciando reconhecimento de voz...');
+                window.voiceRecognition.gameActive = true;
+                window.voiceRecognition.startContinuousListening();
+            } else {
+                addToLog('ERRO: Sistema de voz não disponível');
+            }
+        }
+        
+        function stopListening() {
+            if (window.voiceRecognition) {
+                addToLog('Parando reconhecimento de voz...');
+                window.voiceRecognition.stopContinuousListening();
+            } else {
+                addToLog('ERRO: Sistema de voz não disponível');
+            }
+        }
+        
+        function toggleGroupMode() {
+            if (window.voiceRecognition) {
+                groupMode = !groupMode;
+                window.voiceRecognition.setGroupMode(groupMode);
+                const button = document.getElementById('group-toggle');
+                button.textContent = groupMode ? 'Desativar Modo Grupo' : 'Ativar Modo Grupo';
+                addToLog(`Modo grupo: ${groupMode ? 'ATIVADO' : 'DESATIVADO'}`);
+            } else {
+                addToLog('ERRO: Sistema de voz não disponível');
+            }
+        }
+        
+        // Intercepta logs do console
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            addToLog('LOG: ' + args.join(' '));
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            addToLog('ERROR: ' + args.join(' '));
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            addToLog('WARN: ' + args.join(' '));
+            originalWarn.apply(console, args);
+        };
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            addToLog('Página carregada - aguardando sistema de voz...');
+            
+            // Verifica o status a cada segundo até o sistema estar pronto
+            const checkInterval = setInterval(() => {
+                if (window.voiceRecognition) {
+                    clearInterval(checkInterval);
+                    addToLog('Sistema de voz detectado!');
+                    checkSystemStatus();
+                }
+            }, 1000);
+            
+            // Para de verificar após 10 segundos
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                if (!window.voiceRecognition) {
+                    addToLog('TIMEOUT: Sistema de voz não foi carregado em 10 segundos');
+                }
+            }, 10000);
+        });
+    </script>
+    
+    <!-- Carregamento do sistema de voz -->
+    <script src="voice-recognition.js"></script>
+</body>
+</html>
