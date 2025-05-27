@@ -48,14 +48,27 @@ function updateTimerDisplay() {
     
     // Add warning classes based on time remaining
     timerDisplay.classList.remove('warning', 'danger');
-    if (gameState.timeRemaining <= 10) {
+    if (gameState.timeRemaining <= 5) {
         timerDisplay.classList.add('danger');
-    } else if (gameState.timeRemaining <= 30) {
+        // Play timer danger sound
+        if (window.soundManager) {
+            window.soundManager.play('timerDanger');
+        }
+    } else if (gameState.timeRemaining <= 15) {
         timerDisplay.classList.add('warning');
+        // Play timer warning sound
+        if (window.soundManager) {
+            window.soundManager.play('timerWarning');
+        }
     }
 }
 
 function handleTimeUp() {
+    // Play time up sound
+    if (window.soundManager) {
+        window.soundManager.play('timeUp');
+    }
+    
     showNotification('Tempo esgotado!', 'error', true);
     showAnswer(); // Automatically show the answer when time is up
 }
@@ -104,8 +117,11 @@ advanceGame = function() {
 
 // Add event listeners for timer buttons
 document.addEventListener('DOMContentLoaded', function() {
-    const timerButtons = document.querySelectorAll('.timer-btn');    timerButtons.forEach(button => {
-        button.addEventListener('click', () => {
+    const timerButtons = document.querySelectorAll('.timer-btn');    timerButtons.forEach(button => {        button.addEventListener('click', () => {
+            // Play button click sound
+            if (window.soundManager) {
+                window.soundManager.play('click');
+            }
             // Remove the 'selected' class from all buttons
             timerButtons.forEach(btn => btn.classList.remove('selected'));
             // Add the 'selected' class to the clicked button

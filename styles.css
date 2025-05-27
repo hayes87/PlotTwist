@@ -271,6 +271,83 @@ input[type="text"]:focus {
     transform: translateY(-2px);
 }
 
+/* Estilos dos controles de som */
+.sound-setup {
+    margin-top: 1.5rem;
+}
+
+.sound-setup h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: var(--input-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.volume-control i {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.volume-slider {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    background: var(--border-color);
+    appearance: none;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    background: var(--accent-hover);
+    transform: scale(1.1);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    background: var(--accent-hover);
+    transform: scale(1.1);
+}
+
+/* Estado do botão de som quando desativado */
+.icon-btn.sound-off {
+    background: var(--error-color);
+    color: white;
+}
+
+.icon-btn.sound-off:hover {
+    background: #d32f2f;
+}
+
 /* Estilos da tela de jogo */
 .game-header {
     display: flex;

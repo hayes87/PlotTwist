@@ -284,6 +284,12 @@ class ThemeManager {
 }
 
 // Funções de utilidade
+function playButtonClickSound() {
+    if (window.soundManager) {
+        window.soundManager.play('click');
+    }
+}
+
 function showNotification(message, type = 'info', inCard = false) {
     if (inCard) {
         // Notificação que sobrepõe o card
@@ -411,11 +417,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Atualiza as estatísticas de cartas
     updateCardStats();
-    
-    // Botões da tela inicial
-    document.getElementById('start-game-btn').addEventListener('click', startGame);
-    document.getElementById('load-game-btn').addEventListener('click', loadGame);    document.getElementById('toggle-theme-btn').addEventListener('click', toggleTheme);
-    document.getElementById('reset-cards-btn').addEventListener('click', () => gameState.resetUsedCards());
+      // Botões da tela inicial
+    document.getElementById('start-game-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        startGame();
+    });
+    document.getElementById('load-game-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        loadGame();
+    });    document.getElementById('toggle-theme-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        toggleTheme();
+    });
+    document.getElementById('reset-cards-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        gameState.resetUsedCards();
+    });
     // Botões de dificuldade
     const difficultyButtons = document.querySelectorAll('.difficulty-btn');
     const difficultyDescriptions = {
@@ -426,10 +443,10 @@ document.addEventListener('DOMContentLoaded', () => {
         "random": "Mistura aleatória de todos os níveis de dificuldade",
         "escolhalivre": "Ganhe um bonus no placar de acordo com a dificuldade: Fácil: 50%, Médio: 75%, Difícil: 100%, Master: 125%"
     };
-    
-    const difficultyDescription = document.getElementById('difficulty-description');
+      const difficultyDescription = document.getElementById('difficulty-description');
       difficultyButtons.forEach(button => {
         button.addEventListener('click', () => {
+            playButtonClickSound();
             // Remove a classe 'selected' de todos os botões
             difficultyButtons.forEach(btn => btn.classList.remove('selected'));
             // Adiciona a classe 'selected' ao botão clicado
@@ -450,6 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const roundsButtons = document.querySelectorAll('.rounds-btn');
     roundsButtons.forEach(button => {
         button.addEventListener('click', () => {
+            playButtonClickSound();
             roundsButtons.forEach(btn => btn.classList.remove('selected'));
             button.classList.add('selected');
             gameState.totalRounds = parseInt(button.dataset.rounds);
@@ -459,14 +477,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Seleciona 10 rodadas por padrão
     document.querySelector('[data-rounds="10"]').classList.add('selected');
-    gameState.totalRounds = 10;
-
-    // Botões da tela de jogo
-    document.getElementById('save-game-btn').addEventListener('click', saveGame);
-    document.getElementById('back-to-menu-btn').addEventListener('click', backToMenu);
-    document.getElementById('reveal-clue-btn').addEventListener('click', revealClue);
-    document.getElementById('submit-answer-btn').addEventListener('click', submitAnswer);
-    document.getElementById('show-answer-btn').addEventListener('click', showAnswer);
+    gameState.totalRounds = 10;    // Botões da tela de jogo
+    document.getElementById('save-game-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        saveGame();
+    });
+    document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        backToMenu();
+    });
+    document.getElementById('reveal-clue-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        revealClue();
+    });
+    document.getElementById('submit-answer-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        submitAnswer();    });
+    document.getElementById('show-answer-btn').addEventListener('click', () => {
+        playButtonClickSound();
+        showAnswer();
+    });
     
     // Campo de resposta (Enter para enviar)
     document.getElementById('answer-input').addEventListener('keypress', (e) => {
@@ -475,18 +505,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });      // Botões da tela de resultado
     document.getElementById('new-game-btn').addEventListener('click', () => {
+        playButtonClickSound();
         recordButtonSelection('result_action', 'new_game');
         setupNewGame();
     });
     document.getElementById('return-menu-btn').addEventListener('click', () => {
+        playButtonClickSound();
         recordButtonSelection('result_action', 'return_menu');
         backToMenu();
     });
-    
-    // Botões de seleção de dificuldade (modo escolha livre)
+      // Botões de seleção de dificuldade (modo escolha livre)
     const difficultySelectionButtons = document.querySelectorAll('.difficulty-selection-btn');
     difficultySelectionButtons.forEach(button => {
         button.addEventListener('click', () => {
+            playButtonClickSound();
             const selectedDifficulty = button.dataset.difficulty;
             const points = parseInt(button.dataset.points);
             
@@ -662,6 +694,11 @@ function showGameScreen() {
 }
 
 function showResultScreen() {
+    // Play game over sound
+    if (window.soundManager) {
+        window.soundManager.play('gameOver');
+    }
+    
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById('result-screen').classList.remove('hidden');
@@ -835,6 +872,11 @@ function animateCounter(elementId, targetValue, duration) {
 }
 
 function newRound() {
+    // Play round start sound
+    if (window.soundManager) {
+        window.soundManager.play('roundStart');
+    }
+    
     // Se estamos no modo escolha livre, mostra a tela de seleção de dificuldade
     if (gameState.difficulty === 'escolhalivre') {
         showDifficultySelection();
@@ -879,6 +921,10 @@ function revealClue() {
     
     // Mark that we're revealing a clue
     gameState.isRevealingClue = true;
+      // Play reveal clue sound
+    if (window.soundManager) {
+        window.soundManager.play('reveal');
+    }
     
     // Revela a próxima pista
     const cluesContainer = document.getElementById('clues-container');
@@ -925,11 +971,15 @@ function submitAnswer() {
         showNotification('Digite uma resposta!', 'error');
         return;
     }
-    
-    // Mark that we're processing an answer
+      // Mark that we're processing an answer
     gameState.isProcessingAnswer = true;
     if (gameState.checkAnswer(answer)) {
         // Resposta correta
+        // Play success sound
+        if (window.soundManager) {
+            window.soundManager.play('success');
+        }
+        
         let basePoints = Math.max(11 - gameState.revealedClues, 1);
         
         // No modo escolha livre, aplica o multiplicador baseado na dificuldade escolhida
@@ -978,8 +1028,13 @@ function submitAnswer() {
                 document.getElementById('game-screen').classList.add('hidden');
                 advanceGame();
             }, 300);
-        }, 4700);     } else {
+        }, 4700);    } else {
         // Resposta incorreta
+        // Play error sound
+        if (window.soundManager) {
+            window.soundManager.play('error');
+        }
+        
         showNotification('Resposta incorreta!', 'error', true);
         answerInput.value = '';
         // Reset the processing flag to allow new attempts
@@ -1057,6 +1112,11 @@ function advanceGame() {
 }
 
 function showTeamTransition() {
+    // Play transition sound
+    if (window.soundManager) {
+        window.soundManager.play('transition');
+    }
+    
     // Certifique-se de que a tela do jogo esteja oculta
     document.getElementById('game-screen').classList.add('hidden');
     
