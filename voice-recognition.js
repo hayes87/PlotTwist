@@ -255,7 +255,7 @@ class VoiceRecognition {    constructor() {
                 this.showStatusMessage();
             } else {
                 if (window.showNotification) {
-                    showNotification('🎤 O reconhecimento de voz ficará ativo durante o jogo', 'info');
+                    //showNotification('🎤 O reconhecimento de voz ficará ativo durante o jogo', 'info');
                 }
             }
         });
@@ -295,7 +295,7 @@ class VoiceRecognition {    constructor() {
                         Enviar resposta automaticamente
                     </label>
                 </div>                <div class="voice-option">
-                    <label for="voice-confidence">Sensibilidade:</label>
+                    <label for="voice-confidence">Confianca Minima:</label>
                     <input type="range" id="voice-confidence" min="0.2" max="0.8" step="0.1" value="${this.confidenceThreshold}">
                     <span id="confidence-value">${Math.round(this.confidenceThreshold * 100)}%</span>
                 </div>
@@ -562,7 +562,7 @@ class VoiceRecognition {    constructor() {
                 showNotification(`🎤 Resposta: "${transcript}"`, 'success', 2000);
             } else {
                 // Tentativa com baixa confiança
-                showNotification(`🎤 Ouvi: "${transcript}" (${confidencePercent}%)`, 'warning', 2000);
+                showNotification(`🎤 Ouvi: "${transcript}" (${confidencePercent}%)`, 'warning',false, 2000);
             }
         }
         
