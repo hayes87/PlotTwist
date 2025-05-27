@@ -1008,13 +1008,12 @@ function submitAnswer() {
         
         const notification = document.createElement('div');
         notification.className = 'card-notification success';
-        
-        notification.innerHTML = `
+          notification.innerHTML = `
             <div class="notification-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div class="notification-message">Resposta correta! +${points} pontos</div>
-        `;        cardContainer.appendChild(notification);
+            <div class="notification-message">Resposta correta! "${gameState.currentCard.answer}" +${points} pontos</div>
+        `;cardContainer.appendChild(notification);
         createConfetti();
           // Avança para a próxima rodada ou finaliza o jogo após exatamente 5 segundos
         // e remove a notificação logo antes de avançar

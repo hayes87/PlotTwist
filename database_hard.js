@@ -358,7 +358,7 @@ const databaseHard = [
             'Usa a montagem para criar impacto emocional e intelectual.',
             'O filme é dividido em cinco atos.'
         ],
-        alternatives: ['Bronenosets Potemkin', 'Battleship Potemkin']
+        alternatives: ['Bronenosets Potemkin', 'Battleship Potemkin', 'Potemkin']
     },
     {
         id: 20,
