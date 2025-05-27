@@ -536,23 +536,90 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Nomes de equipes divertidos em português
-const sillyTeamNames = [
-    "Os Papagaios Falantes",
-    "Esquadrão Abacaxi",
-    "Guerreiros do Sofá",
-    "Turma da Pipoca",
-    "Os Macarronadas",
-    "Dragões de Pijama",
-    "Liga dos Preguiçosos",
-    "Força-Tarefa Cafézinho",
-    "Esquadrão Anti-Spoiler",
-    "Os Mestres do Controle Remoto",
-    "Tropa do Biscoito",
-    "Aliança da Soneca",
-    "Batalhão das Coxinhas",
-    "União dos Procrastinadores",
-    "Vingadores do Netflix"
+const sillyTeamNames  = [
+    "Os Comilões de Pipoca",
+    "Esquadrão Spoiler",
+    "Liga dos Maratonistas",
+    "Defensores do Play Automático",
+    "Os Chorões de Drama",
+    "Mestres do Pause",
+    "Guerreiros do Cinema em Casa",
+    "Viciados em Créditos Finais",
+    "Caçadores de Cenas Pós-Créditos",
+    "Turma do Replay",
+    "Os Críticos de Sofá",
+    "Devoradores de Séries",
+    "Ninjas do Controle Remoto",
+    "Esquadrão Anti-Dublagem",
+    "Os Legendadores Amadores",
+    "Força-Tarefa Netflix",
+    "Especialistas em Trilogias",
+    "Os Teóricos de Final",
+    "Clube do Oscar Snub",
+    "Mafiosos da Sessão da Tarde",
+    "Os Viciados em Remake",
+    "Detetives de Erros de Continuidade",
+    "Fãs de Filme B",
+    "Os Sobreviventes de Filme de Terror",
+    "Especialistas em Plot Twist",
+    "Guardiões do Silêncio no Cinema",
+    "Os Comedores de Nachos",
+    "Esquadrão Filme Cult",
+    "Time do Bingewatching",
+    "Os Dormidores de Documentário",
+    "Júri Popular do IMDB",
+    "Os Shippadores Profissionais",
+    "Clube da Meia-Noite",
+    "Os Pausadores de Banheiro",
+    "Viciados em Trailer",
+    "Os Chorões do Titanic",
+    "Fã Clube do Vilão",
+    "Os Teorizadores de Lost",
+    "Defensores do Cinema Nacional",
+    "Time Jump Scare",
+    "Os Viciados em CGI",
+    "Mestres do Fast Forward",
+    "Clube do Filme Estranho",
+    "Os Caçadores de Easter Eggs",
+    "Força Stan Lee",
+    "Os Sobreviventes de Maratona",
+    "Time Pula Abertura",
+    "Os Experts em Crossover",
+    "Viciados em Behind the Scenes",
+    "Os Colecionadores de Fracassos",
+    "Defensores do Plano Sequência",
+    "Time Filme de Arte",
+    "Os Fãs de Explosão",
+    "Clube do Cinema Mudo",
+    "Os Viciados em Franquia",
+    "Mestres do Multiverso",
+    "Time Sempre Chora",
+    "Os Experts em Reboot",
+    "Liga dos Cinéfilos de Plantão",
+    "Os Caçadores de Cameo",
+    "Esquadrão Sessão das Dez",
+    "Time Filme Independente",
+    "Os Viciados em Prequels",
+    "Clube do Diretor's Cut",
+    "Os Maratonistas de Trilogia Estendida",
+    "Defensores do 3D",
+    "Time Odeia Musical",
+    "Os Fãs de Filme Trash",
+    "Mestres do Plot Armor",
+    "Os Viciados em Spin-off",
+    "Liga dos Cancelados",
+    "Time Uma Temporada Só",
+    "Os Experts em Fan Service",
+    "Clube do Filme Subestimado",
+    "Os Defensores do Corte Snyder",
+    "Time Prefere o Livro",
+    "Os Viciados em Universo Compartilhado",
+    "Esquadrão Teoria da Conspiração",
+    "Os Sobreviventes de Cliffhanger",
+    "Liga dos Shippers Desiludidos",
+    "Time Odeia Final Feliz"
 ];
+
 
 // Função para obter um nome de equipe aleatório
 function getRandomTeamName(usedNames = []) {
@@ -920,35 +987,49 @@ function revealClue() {
     
     // Mark that we're revealing a clue
     gameState.isRevealingClue = true;
-      // Play reveal clue sound
-    if (window.soundManager) {
-        window.soundManager.play('reveal');
-    }
     
-    // Revela a próxima pista
-    const cluesContainer = document.getElementById('clues-container');
-    const clue = document.createElement('div');
-    clue.className = 'clue';
-    clue.textContent = gameState.currentCard.clues[gameState.revealedClues];
-    cluesContainer.appendChild(clue);
-    
-    // Inicia o timer na primeira pista revelada
-    if (gameState.revealedClues === 0 && gameState.timeLimit > 0) {
-        startTimer();
-    }
-    
-    gameState.revealedClues++;
-    
-    // Atualiza a pontuação atual (considerando o multiplicador se estiver no modo escolha livre)
-    let currentPoints = Math.max(11 - gameState.revealedClues, 1);
-    if (gameState.difficulty === 'escolhalivre') {
-        currentPoints = currentPoints * gameState.currentRoundMultiplier;
-    }
-    document.getElementById('current-points').textContent = currentPoints;
-    
-    // Se todas as pistas foram reveladas, desabilita o botão
-    if (gameState.revealedClues >= gameState.currentCard.clues.length) {
-        document.getElementById('reveal-clue-btn').disabled = true;
+    try {
+        // Play reveal clue sound
+        if (window.soundManager) {
+            window.soundManager.play('reveal');
+        }
+        
+        // Revela a próxima pista
+        const cluesContainer = document.getElementById('clues-container');
+        const clue = document.createElement('div');
+        clue.className = 'clue';
+        clue.textContent = gameState.currentCard.clues[gameState.revealedClues];
+        cluesContainer.appendChild(clue);
+        
+        // Inicia o timer na primeira pista revelada
+        if (gameState.revealedClues === 0 && gameState.timeLimit > 0) {
+            startTimer();
+        }
+        
+        // Show points display when first clue is revealed
+        if (gameState.revealedClues === 0) {
+            const pointsDisplay = document.querySelector('.points-display');
+            pointsDisplay.style.display = 'flex';
+        }
+        
+        gameState.revealedClues++;
+        
+        // Atualiza a pontuação atual (considerando o multiplicador se estiver no modo escolha livre)
+        let currentPoints = Math.max(11 - gameState.revealedClues, 1);
+        if (gameState.difficulty === 'escolhalivre') {
+            currentPoints = Math.round(currentPoints * gameState.currentRoundMultiplier);
+        }
+        document.getElementById('current-points').textContent = currentPoints;
+        
+        // Se todas as pistas foram reveladas, desabilita o botão
+        if (gameState.revealedClues >= gameState.currentCard.clues.length) {
+            document.getElementById('reveal-clue-btn').disabled = true;
+        }
+    } catch (error) {
+        console.error('Error in revealClue:', error);
+        // Reset flag immediately on error
+        gameState.isRevealingClue = false;
+        return;
     }
     
     // Reset the revealing flag after a brief delay to prevent rapid clicking
@@ -978,12 +1059,11 @@ function submitAnswer() {
         if (window.soundManager) {
             window.soundManager.play('success');
         }
-        
-        let basePoints = Math.max(11 - gameState.revealedClues, 1);
+          let basePoints = Math.max(11 - gameState.revealedClues, 1);
         
         // No modo escolha livre, aplica o multiplicador baseado na dificuldade escolhida
         if (gameState.difficulty === 'escolhalivre') {
-            basePoints = basePoints * gameState.currentRoundMultiplier;
+            basePoints = Math.round(basePoints * gameState.currentRoundMultiplier);
         }
         
         const points = basePoints;
@@ -1274,19 +1354,28 @@ function updateGameUI() {
         // Recria as pistas já reveladas
         const cluesContainer = document.getElementById('clues-container');
         cluesContainer.innerHTML = '';
-        
-        for (let i = 0; i < gameState.revealedClues; i++) {
+          for (let i = 0; i < gameState.revealedClues; i++) {
             const clue = document.createElement('div');
             clue.className = 'clue';
             clue.textContent = gameState.currentCard.clues[i];
-            cluesContainer.appendChild(clue);
-        }
+            cluesContainer.appendChild(clue);        }
           // Atualiza a pontuação atual (considerando o multiplicador se estiver no modo escolha livre)
         let currentPoints = Math.max(11 - gameState.revealedClues, 1);
         if (gameState.difficulty === 'escolhalivre') {
-            currentPoints = currentPoints * gameState.currentRoundMultiplier;
+            currentPoints = Math.round(currentPoints * gameState.currentRoundMultiplier);
         }
         document.getElementById('current-points').textContent = currentPoints;
+          // Hide/show points display based on revealed clues
+        const pointsDisplay = document.querySelector('.points-display');
+        if (gameState.revealedClues === 0) {
+            pointsDisplay.style.display = 'none';
+        } else {
+            pointsDisplay.style.display = 'flex';
+        }
+        
+        // Enable/disable reveal clue button based on available clues
+        const revealButton = document.getElementById('reveal-clue-btn');
+        revealButton.disabled = gameState.revealedClues >= gameState.currentCard.clues.length;
     }
 }
 
