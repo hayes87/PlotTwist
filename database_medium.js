@@ -718,7 +718,7 @@ const databaseMedium = [
             'Calvin Candie, interpretado por DiCaprio, é o sádico dono da plantação Candyland.',
             '"Eu gosto do jeito que você morre, rapaz."'
         ],
-        alternatives: ['Django Unchained']
+        alternatives: ['Django Unchained', 'Django']
     },
     {
         id: 39,

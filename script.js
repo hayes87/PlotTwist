@@ -290,7 +290,7 @@ function playButtonClickSound() {
     }
 }
 
-function showNotification(message, type = 'info', inCard = false) {
+function showNotification(message, type = 'info', inCard = false, duration = 3000) {
     if (inCard) {
         // Notificação que sobrepõe o card
         const cardContainer = document.querySelector('.card-container');
@@ -306,6 +306,7 @@ function showNotification(message, type = 'info', inCard = false) {
         let icon = 'info-circle';
         if (type === 'success') icon = 'check-circle';
         if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
         
         notification.innerHTML = `
             <div class="notification-icon">
@@ -316,13 +317,13 @@ function showNotification(message, type = 'info', inCard = false) {
         
         cardContainer.appendChild(notification);
         
-        // Remove a notificação após 3 segundos
+        // Remove a notificação após o tempo especificado
         setTimeout(() => {
             notification.style.opacity = '0';
             setTimeout(() => {
                 notification.remove();
             }, 300);
-        }, 3000);
+        }, duration);
     } else {
         // Notificação padrão
         const container = document.getElementById('notification-container');
@@ -332,6 +333,7 @@ function showNotification(message, type = 'info', inCard = false) {
         let icon = 'info-circle';
         if (type === 'success') icon = 'check-circle';
         if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
         
         notification.innerHTML = `
             <div class="notification-icon">
@@ -342,13 +344,13 @@ function showNotification(message, type = 'info', inCard = false) {
         
         container.appendChild(notification);
         
-        // Remove a notificação após 3 segundos
+        // Remove a notificação após o tempo especificado
         setTimeout(() => {
             notification.style.opacity = '0';
             setTimeout(() => {
                 notification.remove();
             }, 300);
-        }, 3000);
+        }, duration);
     }
 }
 
@@ -402,6 +404,9 @@ function createConfetti() {
 let gameState = new GameState();
 let themeManager = new ThemeManager();
 let timerInterval = null;
+
+// Expõe gameState globalmente para o sistema de voz
+window.gameState = gameState;
 
 // Event Listeners para elementos da interface
 document.addEventListener('DOMContentLoaded', () => {
@@ -666,9 +671,9 @@ function startGame() {
         team1Name = team1Input;
         team2Name = team2Input;
     }
-    
-    // Inicializa o estado do jogo
+      // Inicializa o estado do jogo
     gameState = new GameState();
+    window.gameState = gameState; // Atualiza a referência global
     gameState.team1 = team1Name;
     gameState.team2 = team2Name;
     gameState.gameStartTime = Date.now(); // Track when the game started
@@ -958,6 +963,11 @@ function startNewRoundWithCard() {
     gameState.isProcessingAnswer = false;
     gameState.isRevealingClue = false;
     
+    // Para o reconhecimento de voz se estiver ativo
+    if (window.voiceRecognition && window.voiceRecognition.isCurrentlyListening()) {
+        window.voiceRecognition.stopGameListening();
+    }
+    
     // Seleciona uma nova carta
     gameState.currentCard = gameState.getNewCard();
     gameState.revealedClues = 0;
@@ -966,14 +976,27 @@ function startNewRoundWithCard() {
     const cluesContainer = document.getElementById('clues-container');
     cluesContainer.innerHTML = '';
     
-    // Limpa o campo de resposta
+    // Limpa o campo de resposta e estado de voz
     const answerInput = document.getElementById('answer-input');
     if (answerInput) {
         answerInput.value = '';
+        answerInput.classList.remove('voice-interim', 'voice-detected');
+    }
+    
+    // Limpa estado de voz
+    if (window.cleanVoiceState) {
+        window.cleanVoiceState();
     }
     
     // Atualiza a interface do jogo
     updateGameUI();
+    
+    // Inicia o reconhecimento de voz contínuo
+    setTimeout(() => {
+        if (window.voiceRecognition) {
+            window.voiceRecognition.startGameListening();
+        }
+    }, 1000); // Pequeno delay para garantir que a interface está pronta
     
     // Salva o estado do jogo
     gameState.save();
@@ -1048,10 +1071,18 @@ function submitAnswer() {
     const answer = answerInput.value.trim();
     
     if (!answer) {
-        showNotification('Digite uma resposta!', 'error');
+        showNotification('Digite uma resposta ou fale sua resposta!', 'error');
         return;
     }
-      // Mark that we're processing an answer
+    
+    // Temporariamente para o reconhecimento durante o processamento
+    let wasListening = false;
+    if (window.voiceRecognition && window.voiceRecognition.isCurrentlyListening()) {
+        wasListening = true;
+        window.voiceRecognition.stopGameListening();
+    }
+    
+    // Mark that we're processing an answer
     gameState.isProcessingAnswer = true;
     if (gameState.checkAnswer(answer)) {
         // Resposta correta
@@ -1112,11 +1143,19 @@ function submitAnswer() {
         if (window.soundManager) {
             window.soundManager.play('error');
         }
-        
-        showNotification('Resposta incorreta!', 'error', true);
+          showNotification('Resposta incorreta!', 'error', true);
         answerInput.value = '';
+        answerInput.classList.remove('voice-detected', 'voice-interim');
+        
         // Reset the processing flag to allow new attempts
         gameState.isProcessingAnswer = false;
+        
+        // Reinicia o reconhecimento de voz se estava ativo
+        if (wasListening && window.voiceRecognition) {
+            setTimeout(() => {
+                window.voiceRecognition.startGameListening();
+            }, 1000);
+        }
     }
 }
 
@@ -1171,6 +1210,11 @@ function advanceGame() {
     // Reset processing flags for the next round
     gameState.isProcessingAnswer = false;
     gameState.isRevealingClue = false;
+    
+    // Para o reconhecimento de voz
+    if (window.voiceRecognition) {
+        window.voiceRecognition.stopGameListening();
+    }
     
     // Certifique-se de que a tela do jogo esteja oculta
     document.getElementById('game-screen').classList.add('hidden');
@@ -1279,8 +1323,8 @@ function setupNewGame() {
     const difficulty = gameState.difficulty;
     const timeLimit = gameState.timeLimit;
     const totalRounds = gameState.totalRounds;
-    
-    gameState = new GameState();
+      gameState = new GameState();
+    window.gameState = gameState; // Atualiza a referência global
     gameState.team1 = team1Name;
     gameState.team2 = team2Name;
     gameState.difficulty = difficulty;
@@ -1679,3 +1723,75 @@ function debugGame() {
 }
 
 // Funções de UI (mostrar/esconder telas, atualizar placar, etc.)
+
+// Funções auxiliares para integração com reconhecimento de voz
+
+// Função para ativar/desativar reconhecimento de voz via interface
+function toggleVoiceRecognition() {
+    if (window.voiceRecognition) {
+        window.voiceRecognition.toggleListening();
+    } else {
+        showNotification('Sistema de reconhecimento de voz não inicializado', 'error');
+    }
+}
+
+// Função chamada quando o usuário clica no campo de resposta
+function onAnswerInputFocus() {
+    // Remove classes de estado de voz quando o usuário clica no campo
+    const answerInput = document.getElementById('answer-input');
+    if (answerInput) {
+        answerInput.classList.remove('voice-interim');
+    }
+}
+
+// Função para mostrar dicas sobre o reconhecimento de voz
+function showVoiceHelp() {
+    const helpMessage = `
+        🎤 <strong>Reconhecimento de Voz:</strong><br>
+        • Clique no botão do microfone ou pressione <strong>Ctrl + Espaço</strong><br>
+        • Fale claramente sua resposta<br>
+        • O sistema reconhecerá automaticamente<br>
+        • Use <strong>Escape</strong> para cancelar<br>
+        • Configure nas opções do jogo
+    `;
+    
+    showNotification(helpMessage, 'info', false, 8000);
+}
+
+// Adiciona event listeners quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', () => {
+    // Event listener para o campo de resposta
+    const answerInput = document.getElementById('answer-input');
+    if (answerInput) {
+        answerInput.addEventListener('focus', onAnswerInputFocus);
+        
+        // Adiciona ícone de ajuda para reconhecimento de voz
+        answerInput.addEventListener('mouseenter', () => {
+            if (window.voiceRecognition && window.voiceRecognition.isSupported) {
+                answerInput.title = 'Digite sua resposta ou use Ctrl+Espaço para falar';
+            }
+        });
+    }
+    
+    // Adiciona indicador visual quando o reconhecimento está ativo
+    const observer = new MutationObserver(() => {
+        const answerContainer = document.querySelector('.answer-container');
+        const voiceButton = document.getElementById('voice-recognition-btn');
+        
+        if (answerContainer && voiceButton) {
+            if (voiceButton.classList.contains('active')) {
+                answerContainer.classList.add('voice-active');
+            } else {
+                answerContainer.classList.remove('voice-active');
+            }
+        }
+    });
+    
+    // Observa mudanças no botão de voz
+    setTimeout(() => {
+        const voiceButton = document.getElementById('voice-recognition-btn');
+        if (voiceButton) {
+            observer.observe(voiceButton, { attributes: true, attributeFilter: ['class'] });
+        }
+    }, 2000);
+});
