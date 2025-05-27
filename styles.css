@@ -419,42 +419,373 @@ input[type="text"]:focus {
     color: var(--text-primary);
 }
 
-/* Estilos da tela de resultado */
+/* Tela de Resultado Aprimorada */
 .result-container {
     background: var(--card-bg);
-    border-radius: 16px;
+    border-radius: 20px;
     box-shadow: var(--card-shadow);
     padding: 2.5rem;
     width: 90%;
-    max-width: 600px;
+    max-width: 900px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.final-scores {
+.result-header {
+    margin-bottom: 2rem;
+}
+
+.result-header h2 {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--accent-color), var(--success-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.game-stats {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 2rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.game-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Animação de Contabilização */
+.score-tally-container {
     margin: 2rem 0;
 }
 
+.tally-animation {
+    padding: 2rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent-color), var(--success-color));
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.tally-animation h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.tally-progress {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    height: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.tally-bar {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 1));
+    border-radius: 20px;
+    width: 0%;
+    transition: width 3s ease-out;
+    position: relative;
+}
+
+.tally-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8));
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Pontuações Finais Aprimoradas */
+.final-scores {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: var(--clue-bg);
+    border-radius: 16px;
+    border: 2px solid var(--border-color);
+}
+
 .final-team-score {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: var(--card-bg);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.final-team-score.winner {
+    background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+    animation: winnerGlow 2s ease-in-out infinite;
+}
+
+.team-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.team-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.final-team-score.winner .team-icon {
+    background: rgba(255, 255, 255, 0.2);
+    animation: iconBounce 1s ease-in-out infinite;
+}
+
+.team-details {
+    text-align: left;
+}
+
+.team-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.final-team-score.winner .team-name {
+    color: white;
+}
+
+.team-stats {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.final-team-score.winner .team-stats {
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .final-points {
     font-size: 3rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--accent-color);
-    margin-top: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: pointsCountUp 2s ease-out;
 }
 
+.final-team-score.winner .final-points {
+    color: white;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--accent-color), var(--success-color));
+    color: white;
+    font-weight: 800;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.vs-text {
+    animation: vsRotate 3s ease-in-out infinite;
+}
+
+/* Anúncio do Vencedor Aprimorado */
 .winner-announcement {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: rgba(76, 175, 80, 0.1);
-    color: var(--success-color);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--success-color), #4caf50);
+    color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+    animation: winnerAppear 1s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.winner-announcement::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shine 3s ease-in-out infinite;
+}
+
+/* Resumo do Jogo */
+.game-summary {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--clue-bg);
+    border-radius: 12px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.game-summary h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--card-bg);
     border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Botões de Resultado */
+.result-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    animation: buttonsSlideUp 1s ease-out 0.5s both;
+}
+
+.result-buttons button {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.result-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Animações do Resultado */
+@keyframes winnerGlow {
+    0%, 100% {
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+    }
+    50% {
+        box-shadow: 0 8px 35px rgba(76, 175, 80, 0.6);
+    }
+}
+
+@keyframes pointsCountUp {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes vsRotate {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes winnerAppear {
+    0% {
+        transform: scale(0.8) translateY(20px);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05) translateY(-5px);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shine {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(30deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(30deg);
+    }
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        opacity: 0.8;
+        transform: translateX(-100%);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes buttonsSlideUp {
+    0% {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 /* Estilos da tela de transição de equipes */

@@ -4,6 +4,8 @@ class GameState {    constructor() {
         this.team2 = '';
         this.team1Points = 0;
         this.team2Points = 0;
+        this.team1CorrectAnswers = 0; // Track correct answers count
+        this.team2CorrectAnswers = 0; // Track correct answers count
         this.currentRound = 1;
         this.totalRounds = 10;
         this.activeTeam = 1; // 1 ou 2
@@ -13,11 +15,13 @@ class GameState {    constructor() {
         this.timeLimit = 0; // 0 = sem limite, 60 = 1 min, etc.
         this.timeRemaining = 0;
         this.usedCards = [];
-        this.gameHistory = [];        this.currentRoundDifficulty = 'medium'; // Dificuldade específica da rodada atual (para modo escolha livre)
+        this.gameHistory = [];
+        this.gameStartTime = null; // Track when the game started
+        this.currentRoundDifficulty = 'medium'; // Dificuldade específica da rodada atual (para modo escolha livre)
         this.currentRoundMultiplier = 1; // Multiplicador de pontos da rodada atual
         this.isProcessingAnswer = false; // Previne múltiplas submissões rápidas
         this.isRevealingClue = false; // Previne múltiplos cliques rápidos no botão revelar pista
-    }    // Salva o estado do jogo no localStorage
+    }// Salva o estado do jogo no localStorage
     save() {
         localStorage.setItem('perfilGameState', JSON.stringify({
             team1: this.team1,
@@ -506,12 +510,13 @@ function startGame() {
     gameState = new GameState();
     gameState.team1 = team1Name;
     gameState.team2 = team2Name;
+    gameState.gameStartTime = Date.now(); // Track when the game started
     
     // Obtém o tempo limite selecionado
     const selectedTimerBtn = document.querySelector('.timer-btn.selected');
     if (selectedTimerBtn) {
         gameState.timeLimit = parseInt(selectedTimerBtn.dataset.time);
-    }    // Obtém o número de rodadas selecionado
+    }// Obtém o número de rodadas selecionado
     const selectedRoundsBtn = document.querySelector('.rounds-btn.selected');
     if (selectedRoundsBtn) {
         gameState.totalRounds = parseInt(selectedRoundsBtn.dataset.rounds);
@@ -598,30 +603,172 @@ function showResultScreen() {
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById('result-screen').classList.remove('hidden');
     
-    // Atualiza as informações finais
+    // Calculate game duration
+    const gameDuration = gameState.gameStartTime ? Date.now() - gameState.gameStartTime : 0;
+    const durationMinutes = Math.floor(gameDuration / 60000);
+    const durationSeconds = Math.floor((gameDuration % 60000) / 1000);
+    
+    // Update game statistics
+    document.getElementById('game-duration').textContent = 
+        `${durationMinutes.toString().padStart(2, '0')}:${durationSeconds.toString().padStart(2, '0')}`;
+    document.getElementById('total-rounds-played').textContent = gameState.totalRounds;
+    
+    // Hide all sections initially except header
+    document.getElementById('tally-animation').classList.remove('hidden');
+    document.getElementById('final-scores').classList.add('hidden');
+    document.getElementById('winner-announcement').classList.add('hidden');
+    document.getElementById('game-summary').classList.add('hidden');
+    document.getElementById('result-buttons').classList.add('hidden');
+    
+    // Start the animated sequence
+    setTimeout(() => {
+        animateScoreTally();
+    }, 500);
+}
+
+// Helper function to show sections with animation
+function showSection(sectionId, delay = 0) {
+    setTimeout(() => {
+        const section = document.getElementById(sectionId);
+        section.classList.remove('hidden');
+    }, delay);
+}
+
+// Animate the score tally progress bar
+function animateScoreTally() {
+    const tallyBar = document.getElementById('tally-bar');
+    let progress = 0;
+    const duration = 2000; // 2 seconds
+    const interval = 20; // Update every 20ms
+    const increment = 100 / (duration / interval);
+    
+    const progressInterval = setInterval(() => {
+        progress += increment;
+        tallyBar.style.width = `${Math.min(progress, 100)}%`;
+        
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            // Hide tally animation and show scores
+            setTimeout(() => {
+                document.getElementById('tally-animation').classList.add('hidden');
+                showScores();
+            }, 500);
+        }
+    }, interval);
+}
+
+// Show and animate the final scores
+function showScores() {
+    // Show the scores section
+    showSection('final-scores');
+    
+    // Update team names and correct answers
     document.getElementById('final-team1-name').textContent = gameState.team1;
     document.getElementById('final-team2-name').textContent = gameState.team2;
-    document.getElementById('final-team1-points').textContent = gameState.team1Points;
-    document.getElementById('final-team2-points').textContent = gameState.team2Points;
+    document.getElementById('team1-correct-answers').textContent = gameState.team1CorrectAnswers || 0;
+    document.getElementById('team2-correct-answers').textContent = gameState.team2CorrectAnswers || 0;
     
-    // Determina o vencedor
-    let winnerMessage = '';
+    // Animate score counting for both teams
+    animateCounter('final-team1-points', gameState.team1Points, 1500);
+    animateCounter('final-team2-points', gameState.team2Points, 1500);
+    
+    // Determine winner and highlight
+    let winner = '';
     if (gameState.team1Points > gameState.team2Points) {
-        winnerMessage = `<i class="fas fa-trophy"></i> ${gameState.team1} venceu!`;
+        winner = 'team1';
+        document.getElementById('final-team1-container').classList.add('winner');
     } else if (gameState.team2Points > gameState.team1Points) {
+        winner = 'team2';
+        document.getElementById('final-team2-container').classList.add('winner');
+    }
+    
+    // Show winner announcement after scores finish animating
+    setTimeout(() => {
+        showWinnerAnnouncement(winner);
+    }, 2000);
+}
+
+// Show the winner announcement with confetti
+function showWinnerAnnouncement(winner) {
+    let winnerMessage = '';
+    if (winner === 'team1') {
+        winnerMessage = `<i class="fas fa-trophy"></i> ${gameState.team1} venceu!`;
+    } else if (winner === 'team2') {
         winnerMessage = `<i class="fas fa-trophy"></i> ${gameState.team2} venceu!`;
     } else {
         winnerMessage = '<i class="fas fa-handshake"></i> Empate!';
     }
     
     document.getElementById('winner-announcement').innerHTML = winnerMessage;
+    showSection('winner-announcement');
     
-    // Salva o resultado no histórico
-    gameState.saveToHistory();
-    updateGameHistory();
-    
-    // Efeito de confete
+    // Trigger confetti explosion at the climactic moment
     createConfetti();
+    
+    // Show game summary after winner announcement
+    setTimeout(() => {
+        showGameSummary();
+    }, 1500);
+}
+
+// Show the game summary with statistics
+function showGameSummary() {
+    // Populate game summary data
+    const difficultyNames = {
+        'easy': 'Fácil',
+        'medium': 'Médio', 
+        'hard': 'Difícil',
+        'cult': 'Cult',
+        'random': 'Aleatório',
+        'escolhalivre': 'Escolha Livre'
+    };
+    
+    document.getElementById('game-difficulty').textContent = difficultyNames[gameState.difficulty] || gameState.difficulty;
+    
+    // Handle time limit display
+    const timeLimitStat = document.getElementById('time-limit-stat');
+    if (gameState.timeLimit > 0) {
+        const minutes = Math.floor(gameState.timeLimit / 60);
+        const seconds = gameState.timeLimit % 60;
+        const timeText = minutes > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${seconds}s`;
+        document.getElementById('game-time-limit').textContent = timeText;
+        timeLimitStat.style.display = 'flex';
+    } else {
+        document.getElementById('game-time-limit').textContent = 'Sem limite';
+        timeLimitStat.style.display = 'flex';
+    }
+    
+    // Calculate total points
+    const totalPoints = gameState.team1Points + gameState.team2Points;
+    document.getElementById('total-points').textContent = totalPoints;
+    
+    showSection('game-summary');
+    
+    // Show result buttons last
+    setTimeout(() => {
+        showSection('result-buttons');
+        
+        // Save to history after everything is displayed
+        gameState.saveToHistory();
+        updateGameHistory();
+    }, 1000);
+}
+
+// Animate a counter from 0 to target value
+function animateCounter(elementId, targetValue, duration) {
+    const element = document.getElementById(elementId);
+    const startValue = 0;
+    const increment = targetValue / (duration / 16); // 60fps
+    let currentValue = startValue;
+    
+    const counter = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(counter);
+        }
+        element.textContent = Math.floor(currentValue);
+    }, 16);
 }
 
 function newRound() {
@@ -728,13 +875,14 @@ function submitAnswer() {
         }
         
         const points = basePoints;
-        
-        // Adiciona os pontos à equipe ativa
+          // Adiciona os pontos à equipe ativa
         if (gameState.activeTeam === 1) {
             gameState.team1Points += points;
+            gameState.team1CorrectAnswers++;
             document.getElementById('team1-points').textContent = gameState.team1Points;
         } else {
             gameState.team2Points += points;
+            gameState.team2CorrectAnswers++;
             document.getElementById('team2-points').textContent = gameState.team2Points;
         }
           // Notificação customizada para pontos que dura mais tempo

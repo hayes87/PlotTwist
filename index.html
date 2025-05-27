@@ -131,26 +131,87 @@
         </div>        <!-- Tela de Resultado -->
         <div id="result-screen" class="screen hidden">
             <div class="result-container">
-                <h2>Fim de Jogo!</h2>
-                <div class="final-scores">
-                    <div class="final-team-score">
-                        <div id="final-team1-name">Equipe 1</div>
-                        <div id="final-team1-points" class="final-points">0</div>
-                    </div>
-                    <div class="final-team-score">
-                        <div id="final-team2-name">Equipe 2</div>
-                        <div id="final-team2-points" class="final-points">0</div>
+                <div class="result-header">
+                    <h2><i class="fas fa-flag-checkered"></i> Fim de Jogo!</h2>
+                    <div class="game-stats">
+                        <span><i class="fas fa-clock"></i> <span id="game-duration">--:--</span></span>
+                        <span><i class="fas fa-play-circle"></i> <span id="total-rounds-played">0</span> rodadas</span>
                     </div>
                 </div>
-                <div id="winner-announcement" class="winner-announcement">
+                
+                <div class="score-tally-container">
+                    <div class="tally-animation" id="tally-animation">
+                        <h3><i class="fas fa-calculator"></i> Contabilizando Pontuação...</h3>
+                        <div class="tally-progress">
+                            <div class="tally-bar" id="tally-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="final-scores hidden" id="final-scores">
+                        <div class="final-team-score" id="final-team1-container">
+                            <div class="team-info">
+                                <div class="team-icon"><i class="fas fa-users"></i></div>
+                                <div class="team-details">
+                                    <div id="final-team1-name" class="team-name">Equipe 1</div>
+                                    <div class="team-stats">
+                                        <span id="team1-correct-answers">0</span> acertos
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="final-team1-points" class="final-points">0</div>
+                        </div>
+                        
+                        <div class="vs-divider">
+                            <div class="vs-text">VS</div>
+                        </div>
+                        
+                        <div class="final-team-score" id="final-team2-container">
+                            <div class="team-info">
+                                <div class="team-icon"><i class="fas fa-users"></i></div>
+                                <div class="team-details">
+                                    <div id="final-team2-name" class="team-name">Equipe 2</div>
+                                    <div class="team-stats">
+                                        <span id="team2-correct-answers">0</span> acertos
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="final-team2-points" class="final-points">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="winner-announcement" class="winner-announcement hidden">
                     <!-- Anúncio do vencedor -->
                 </div>
-                <div class="result-buttons">
-                    <button id="new-game-btn" class="primary-btn">Novo Jogo</button>
-                    <button id="return-menu-btn" class="secondary-btn">Voltar ao Menu</button>
+                
+                <div class="game-summary hidden" id="game-summary">
+                    <h4><i class="fas fa-chart-line"></i> Resumo da Partida</h4>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Dificuldade:</span>
+                            <span id="game-difficulty" class="stat-value">--</span>
+                        </div>
+                        <div class="stat-item" id="time-limit-stat">
+                            <span class="stat-label">Tempo Limite:</span>
+                            <span id="game-time-limit" class="stat-value">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total de Pontos:</span>
+                            <span id="total-points" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-buttons hidden" id="result-buttons">
+                    <button id="new-game-btn" class="primary-btn">
+                        <i class="fas fa-play"></i> Novo Jogo
+                    </button>
+                    <button id="return-menu-btn" class="secondary-btn">
+                        <i class="fas fa-home"></i> Voltar ao Menu
+                    </button>
                 </div>
             </div>
-        </div>        <!-- Tela de Transição de Equipe -->
+        </div><!-- Tela de Transição de Equipe -->
         <div id="team-transition-screen" class="screen hidden">
             <div class="transition-container">
                 <h2>Vez da Equipe</h2>
