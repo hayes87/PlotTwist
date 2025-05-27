@@ -178,5 +178,184 @@ const databaseMedium = [
             'Um urso polar aparece misteriosamente na ilha tropical',
         ],
         alternatives: ['Lost - Perdidos', 'Perdidos']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Donnie Darko',
+        clues: [
+            'Filme de culto independente de 2001',
+            'Mistura drama psicológico com ficção científica',
+            'O protagonista é visitado por uma figura em traje de coelho',
+            'Aborda temas de viagem no tempo e realidades paralelas',
+            'Dirigido por Richard Kelly',
+            'Jake Gyllenhaal interpreta o protagonista',
+            'A música "Mad World" se tornou famosa por causa do filme',
+            'Tem uma sequência menos conhecida chamada "S. Darko"',
+            'Se passa em uma cidade suburbana americana nos anos 80',
+            'Termina com um evento paradoxal envolvendo um avião'
+        ],
+        alternatives: ['Donnie Darko']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Dark',
+        clues: [
+            'Série alemã de ficção científica da Netflix',
+            'A trama envolve viagem no tempo e paradoxos',
+            'Se passa na cidade fictícia de Winden',
+            'Tem três temporadas interconectadas',
+            'A história abrange múltiplas gerações de quatro famílias',
+            'Um acidente em uma usina nuclear é central para a trama',
+            'Apresenta versões diferentes dos personagens em várias idades',
+            'A frase "O início é o fim e o fim é o início" é recorrente',
+            'Explora conceitos de determinismo e livre arbítrio',
+            'Terminou em 2020 com sua terceira temporada'
+        ],
+        alternatives: ['Dark']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Trainspotting',
+        clues: [
+            'Filme britânico de 1996 dirigido por Danny Boyle',
+            'Baseado no romance de Irvine Welsh',
+            'Retrata um grupo de viciados em heroína em Edimburgo',
+            'Ewan McGregor interpreta o protagonista Mark Renton',
+            'Tem um famoso monólogo sobre "escolher a vida"',
+            'A música "Born Slippy" do Underworld é tema do filme',
+            'Ganhou uma sequência 20 anos depois',
+            'O bebê no teto é uma cena memorável',
+            'O personagem Begbie é conhecido por sua violência',
+            'Sick Boy é obcecado por Sean Connery'
+        ],
+        alternatives: ['Trainspotting: Sem Limites']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Mr. Robot',
+        clues: [
+            'Série sobre um programador/hacker com problemas mentais',
+            'O protagonista trabalha em segurança cibernética',
+            'Envolve um grupo de hackers chamado fsociety',
+            'Rami Malek interpreta o personagem principal',
+            'O personagem principal tem transtorno de personalidade',
+            'Evil Corp é a principal antagonista corporativa',
+            'Usa termos técnicos de computação com precisão',
+            'O protagonista se chama Elliot Alderson',
+            'Christian Slater interpreta Mr. Robot',
+            'Terminou após 4 temporadas'
+        ],
+        alternatives: ['Mr Robot']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Charlie Kaufman',
+        clues: [
+            'Roteirista e diretor americano conhecido por filmes surreais',
+            'Escreveu "Quero Ser John Malkovich"',
+            'Ganhou o Oscar por "Brilho Eterno de uma Mente sem Lembranças"',
+            'Dirigiu "Sinédoque, Nova York"',
+            'Seus roteiros frequentemente quebram a quarta parede',
+            'Trabalha com temas de identidade e existencialismo',
+            'Adaptou "As Orquídeas Selvagens" para o cinema',
+            'Dirigiu "Anomalisa" usando animação stop-motion',
+            'Seu filme "Estou Pensando em Acabar com Tudo"',
+            'Conhecido por narrativas complexas e meta-referências'
+        ],
+        alternatives: ['Charles Stuart Kaufman']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Blade Runner',
+        clues: [
+            'Filme neo-noir de ficção científica de 1982',
+            'Dirigido por Ridley Scott',
+            'Harrison Ford interpreta um caçador de andróides',
+            'Baseado em um livro de Philip K. Dick',
+            'Se passa em Los Angeles em 2019',
+            'Os andróides são chamados de replicantes',
+            'Rutger Hauer interpreta Roy Batty',
+            'Famoso por seu visual cyberpunk',
+            'O monólogo "Tears in Rain" é icônico',
+            'Teve uma sequência em 2017'
+        ],
+        alternatives: ['Blade Runner - O Caçador de Andróides']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Fargo',
+        clues: [
+            'Série inspirada no filme dos irmãos Coen',
+            'Cada temporada conta uma história diferente',
+            'Se passa principalmente em Minnesota',
+            'Mistura crime com humor negro',
+            'Mantém o estilo e tom do filme original',
+            'Billy Bob Thornton estrelou a primeira temporada',
+            'Todas as histórias são supostamente baseadas em fatos reais',
+            'O clima frio é parte importante da ambientação',
+            'Ganhou vários prêmios Emmy',
+            'Produzida pelo FX'
+        ],        alternatives: ['Fargo']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Eternal Sunshine',
+        clues: [
+            'Filme de 2004 escrito por Charlie Kaufman',
+            'Jim Carrey e Kate Winslet são os protagonistas',
+            'Um casal apaga as memórias um do outro',
+            'Dirigido por Michel Gondry',
+            'Mistura romance com ficção científica',
+            'A Lacuna Inc. é a empresa que faz o procedimento',
+            'A narrativa é não-linear',
+            'Ganhou o Oscar de Melhor Roteiro Original',
+            'Explora temas de memória e relacionamentos',
+            'O título vem de um poema de Alexander Pope'
+        ],
+        alternatives: ['Brilho Eterno de uma Mente sem Lembranças', 'Eternal Sunshine of the Spotless Mind']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Mindhunter',
+        clues: [
+            'Série da Netflix sobre a origem do FBI BSU',
+            'Baseada no livro de John Douglas',
+            'Se passa nos anos 70',
+            'Agentes entrevistam assassinos em série',
+            'David Fincher é produtor executivo',
+            'Jonathan Groff interpreta Holden Ford',
+            'Edmund Kemper é um personagem recorrente',
+            'Explora a psicologia de criminosos',
+            'Mostra o desenvolvimento do perfil criminal',
+            'BTK Killer aparece em cenas misteriosas'
+        ],
+        alternatives: ['Mindhunter']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'David Lynch',
+        clues: [
+            'Diretor americano conhecido por filmes surreais',
+            'Criou a série Twin Peaks',
+            'Dirigiu "Veludo Azul" e "Mulholland Drive"',
+            'Também é pintor e músico',
+            'Conhecido por narrativas não-lineares',
+            'Praticante de meditação transcendental',
+            'Ganhou a Palma de Ouro por "Coração Selvagem"',
+            'Trabalhou frequentemente com Angelo Badalamenti',
+            'Seu primeiro filme foi "Eraserhead"',
+            'Conhecido por misturar sonhos e realidade'
+        ],
+        alternatives: ['David Keith Lynch']
     }
 ];

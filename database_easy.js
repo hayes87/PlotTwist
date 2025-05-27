@@ -13,7 +13,7 @@ const databaseEasy = [
             'A trama envolve um romance entre pessoas de classes sociais diferentes',
             'O filme mostra o naufrágio de um grande navio de passageiros',
             'Os personagens principais são Jack Dawson e Rose DeWitt Bukater',
-            'É uma das maiores bilheterias da história do cinema'
+            'É uma das maiores bilheteiras da história do cinema'
         ],
         alternatives: ['O Titanic', 'Titânico']
     },
@@ -31,7 +31,7 @@ const databaseEasy = [
             'Termina com metade da população do universo desaparecendo',
             'Foi dividido em duas partes: "Guerra Infinita" e "Ultimato"',
             'O Homem de Ferro faz um sacrifício final para salvar o universo',
-            'É um dos filmes de maior bilheteria de todos os tempos'
+            'É um dos filmes de maior bilheteira de todos os tempos'
         ],
         alternatives: ['Os Vingadores', 'Vingadores: Ultimato', 'Vingadores: Guerra Infinita', 'The Avengers']
     },
@@ -178,5 +178,309 @@ const databaseEasy = [
             'O slogan "Tread Lightly" (Pise Levemente) é icônico na série'
         ],
         alternatives: ['Breaking Bad']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Star Wars',
+        clues: [
+            'Uma saga espacial criada por George Lucas',
+            'Conta a história dos Jedi contra o Império Galáctico',
+            'Darth Vader é um dos vilões mais icônicos',
+            'A Força é um poder místico usado pelos personagens',
+            'Apresenta robôs famosos como C-3PO e R2-D2',
+            'O primeiro filme foi lançado em 1977',
+            'A princesa Leia é uma das protagonistas',
+            'Luke Skywalker descobre que é um Jedi',
+            'Han Solo pilota a nave Millennium Falcon',
+            'A frase "Que a Força esteja com você" é icônica'
+        ],
+        alternatives: ['Guerra nas Estrelas', 'Star Wars: Uma Nova Esperança']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Friends',
+        clues: [
+            'Sitcom americana que durou 10 temporadas',
+            'Se passa principalmente em Nova York',
+            'O grupo principal tem 6 amigos',
+            'Uma música tema muito conhecida com palmas',
+            'Dois dos personagens são irmãos',
+            'Inclui a famosa cafeteria Central Perk',
+            'Ross e Rachel têm um relacionamento complicado',
+            'Monica e Chandler acabam se casando',
+            'Phoebe canta "Smelly Cat"',
+            'Joey é um ator que faz comerciais e novelas'
+        ],
+        alternatives: ['Friends']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Jurassic World',
+        clues: [
+            'Continuação moderna de uma famosa franquia de dinossauros',
+            'Chris Pratt e Bryce Dallas Howard são os protagonistas',
+            'O parque temático está finalmente em funcionamento',
+            'O protagonista treina velociraptores',
+            'Um novo dinossauro híbrido é a atração principal',
+            'O Indominus Rex é criado em laboratório',
+            'Lançado em 2015, foi um grande sucesso de bilheteira',
+            'Mostra o parque completamente operacional pela primeira vez',
+            'Blue é o nome de um dos velociraptores treinados',
+            'Termina com uma batalha épica envolvendo o T-Rex original'
+        ],
+        alternatives: ['Jurassic World: O Mundo dos Dinossauros']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Morgan Freeman',
+        clues: [
+            'Ator americano conhecido por sua voz distintiva',
+            'Narrou documentários e filmes como "Marcha dos Pinguins"',
+            'Ganhou o Oscar por "Million Dollar Baby"',
+            'Interpretou Deus em "Todo Poderoso"',
+            'Atuou como motorista em "Conduzindo Miss Daisy"',
+            'Fez parte do elenco de "Um Sonho de Liberdade"',
+            'Participou da trilogia Batman de Christopher Nolan',
+            'Conhecido por interpretar figuras de autoridade e sabedoria',
+            'Começou sua carreira no programa infantil "The Electric Company"',
+            'Frequentemente faz papel de narrador em documentários'
+        ],
+        alternatives: ['Morgan Porterfield Freeman Jr.']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'The Big Bang Theory',
+        clues: [
+            'Sitcom sobre um grupo de cientistas nerds',
+            'O personagem principal é um físico teórico',
+            'Uma garçonete se muda para o apartamento em frente',
+            'Sheldon Cooper é conhecido por suas peculiaridades',
+            'Tem uma música tema da banda Barenaked Ladies',
+            'Os personagens trabalham na Caltech',
+            'Bazinga! é uma frase catchphrase famosa',
+            'Howard, Raj e Leonard são personagens principais',
+            'Penny é a vizinha que vira amiga do grupo',
+            'Durou 12 temporadas na CBS'
+        ],
+        alternatives: ['Big Bang: A Teoria']    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Matrix',
+        clues: [
+            'Filme de ficção científica de 1999',
+            'Protagonizado por Keanu Reeves',
+            'A realidade é uma simulação de computador',
+            'O protagonista é chamado de Neo',
+            'Morpheus oferece duas pílulas: azul e vermelha',
+            'Trinity é uma hacker que ajuda o protagonista',
+            'Os agentes são programas que caçam os rebeldes',
+            'O Agente Smith é o principal antagonista',
+            'Famoso por suas cenas de ação em câmera lenta',
+            'A frase "Siga o coelho branco" é importante'
+        ],
+        alternatives: ['The Matrix', 'Matrix: O Filme']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Leonardo DiCaprio',
+        clues: [
+            'Ator americano que começou como ator infantil',
+            'Ganhou o Oscar por "O Regresso"',
+            'Protagonizou "Titanic" ao lado de Kate Winslet',
+            'Trabalhou várias vezes com Martin Scorsese',
+            'Interpretou um ladrão de sonhos em "A Origem"',
+            'Atuou em "O Lobo de Wall Street"',
+            'Fez o papel de Jack Dawson',
+            'É conhecido por seu ativismo ambiental',
+            'Estrelou "Django Livre" de Quentin Tarantino',
+            'Interpretou Howard Hughes em "O Aviador"'
+        ],
+        alternatives: ['Leo DiCaprio', 'Leonardo Wilhelm DiCaprio']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'The Office',
+        clues: [
+            'Sitcom americana sobre uma empresa de papel',
+            'Adaptada de uma série britânica',
+            'Michael Scott é o gerente regional',
+            'Se passa em Scranton, Pensilvânia',
+            'Filmada em estilo documentário',
+            'Dwight Schrute é um vendedor excêntrico',
+            'Jim e Pam têm um romance ao longo da série',
+            'A empresa se chama Dunder Mifflin',
+            'Conhecida por seu humor constrangedor',
+            'Steve Carell interpreta o chefe principal'
+        ],        alternatives: ['The Office US', 'The Office (US)']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'O Senhor dos Anéis',
+        clues: [
+            'Trilogia baseada nos livros de J.R.R. Tolkien',
+            'Dirigida por Peter Jackson',
+            'A história se passa na Terra-média',
+            'Um hobbit deve destruir um anel poderoso',
+            'Gandalf é um mago que guia os heróis',
+            'Frodo é o protagonista principal',
+            'Uma sociedade de nove membros é formada',
+            'Gollum é uma criatura obcecada pelo anel',
+            'O último filme ganhou 11 Oscars',
+            'A jornada termina em Mordor'
+        ],
+        alternatives: ['The Lord of the Rings', 'LOTR', 'A Sociedade do Anel']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Johnny Depp',
+        clues: [
+            'Ator americano conhecido por papéis excêntricos',
+            'Interpretou Jack Sparrow em "Piratas do Caribe"',
+            'Colaborou frequentemente com Tim Burton',
+            'Protagonizou "Edward Mãos de Tesoura"',
+            'Interpretou Willy Wonka em "A Fantástica Fábrica de Chocolate"',
+            'Fez o papel do Chapeleiro Maluco em "Alice no País das Maravilhas"',
+            'Atuou como um gangster em "Inimigos Públicos"',
+            'Interpretou o barbeiro demoníaco Sweeney Todd',
+            'Começou sua carreira na série "21 Jump Street"',
+            'Famoso por suas transformações físicas para diferentes papéis'
+        ],
+        alternatives: ['John Christopher Depp II']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'The Walking Dead',
+        clues: [
+            'Série sobre sobreviventes em um apocalipse zumbi',
+            'Baseada em uma história em quadrinhos',
+            'Rick Grimes é o protagonista inicial',
+            'Os mortos-vivos são chamados de "walkers"',
+            'Daryl Dixon usa uma besta como arma',
+            'A série começa em Atlanta, Geórgia',
+            'O grupo busca constantemente um local seguro',
+            'Negan é um dos vilões mais memoráveis',
+            'Alexandria se torna um local importante',
+            'Uma das séries mais longas sobre zumbis'
+        ],
+        alternatives: ['TWD']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'O Poderoso Chefão',
+        clues: [
+            'Filme americano de 1972 dirigido por Francis Ford Coppola',
+            'Baseado no romance de Mario Puzo',
+            'Acompanha a família mafiosa Corleone',
+            'Vito Corleone é o patriarca da família',
+            'Michael Corleone, interpretado por Al Pacino, é o filho mais novo',
+            'O filme explora temas de poder, lealdade e vingança',
+            'Apresenta a icônica cena do cavalo na cama',
+            'Ganhou 3 Oscars, incluindo Melhor Filme',
+            'É considerado um dos maiores filmes da história do cinema',
+            'A trilogia também inclui "O Poderoso Chefão II" e "O Poderoso Chefão III"'
+        ],
+        alternatives: ['O Poderoso Chefão', 'The Godfather Part II']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Forrest Gump',
+        clues: [
+            'Filme americano de 1994 dirigido por Robert Zemeckis',
+            'Estrelado por Tom Hanks no papel principal',
+            'Conta a história da vida de um homem com QI abaixo da média',
+            '"A vida é como uma caixa de chocolates, você nunca sabe o que vai encontrar."',
+            'Ganha a Medalha de Honra do Congresso por bravura no Vietnã',
+            'Inspira um fenômeno de corrida cross-country',
+            'Conhece vários presidentes dos EUA',
+            'Seu melhor amigo se chama Bubba e sonha em ser capitão de um barco de camarão',
+            'Jenny é seu grande amor de infância',
+            'Ganhador de 6 Oscars, incluindo Melhor Filme'
+        ],
+        alternatives: ['Forrest Gump O Contador de Histórias']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Friends',
+        clues: [
+            'Sitcom americana popular exibida de 1994 a 2004',
+            'Criada por David Crane e Marta Kauffman',
+            'Acompanha a vida de seis amigos em Nova York',
+            'O café Central Perk é um ponto de encontro frequente',
+            'Personagens principais: Rachel, Monica, Phoebe, Joey, Chandler e Ross',
+            '"How you doin\'?" é um bordão famoso de um dos personagens',
+            'Ross é paleontólogo e tem um macaco de estimação chamado Marcel',
+            'Phoebe canta músicas excêntricas como "Smelly Cat"',
+            'Monica é uma chef de cozinha competitiva e organizada',
+            'O apartamento de Monica tem uma moldura amarela no olho mágico da porta'
+        ],
+        alternatives: ['Friends TV Show']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'O Rei Leão',
+        clues: [
+            'Filme de animação da Disney de 1994',
+            'A história se passa na Savana Africana',
+            'Simba é o jovem príncipe leão destinado a ser rei',
+            'Seu tio Scar trama para tomar o trono',
+            'Mufasa, pai de Simba, é o rei no início do filme',
+            '"Hakuna Matata" é uma canção famosa do filme',
+            'Timão e Pumba são um suricato e um javali, amigos de Simba',
+            'Rafiki é um mandril sábio e conselheiro real',
+            'As hienas Shenzi, Banzai e Ed são aliadas de Scar',
+            'Inspirado em Hamlet de Shakespeare'
+        ],
+        alternatives: ['The Lion King']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Steven Spielberg',
+        clues: [
+            'Diretor e produtor de cinema americano nascido em 1946',
+            'Considerado um dos pioneiros da Nova Hollywood',
+            'Dirigiu filmes icônicos como "Tubarão", "E.T. - O Extraterrestre" e "Jurassic Park"',
+            'Co-fundador da DreamWorks Studios',
+            'Ganhou o Oscar de Melhor Diretor por "A Lista de Schindler" e "O Resgate do Soldado Ryan"',
+            'Seus filmes frequentemente exploram temas de infância, aventura e encontros com o extraordinário',
+            'Conhecido por seu apelo comercial e aclamação da crítica',
+            'Produziu franquias de sucesso como "Indiana Jones" e "De Volta para o Futuro"',
+            'Seu primeiro grande sucesso foi "Tubarão" em 1975',
+            'Frequentemente colabora com o compositor John Williams'
+        ],
+        alternatives: ['Spielberg']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Matrix',
+        clues: [
+            'Filme de ficção científica de 1999 dirigido pelas Wachowskis',
+            'Estrelado por Keanu Reeves como Neo',
+            'Popularizou o efeito visual "bullet time"',
+            'Humanos estão presos em uma realidade simulada',
+            'Morpheus é o capitão da nave Nabucodonosor',
+            'Trinity é uma hacker habilidosa e interesse amoroso de Neo',
+            'Agente Smith é o principal antagonista do programa',
+            'A escolha entre a pílula azul e a pílula vermelha é um momento crucial',
+            '"Existe uma diferença entre conhecer o caminho e percorrer o caminho."',
+            'Combina elementos de cyberpunk, artes marciais e filosofia'
+        ],
+        alternatives: ['The Matrix']
     }
 ];

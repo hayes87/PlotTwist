@@ -178,5 +178,221 @@ const databaseCult = [
             'O final enigmático continua a ser debatido por fãs'
         ],
         alternatives: ['O Prisioneiro', 'The Prisoner']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Santa Sangre',
+        clues: [
+            'Filme surrealista de 1989 dirigido por Alejandro Jodorowsky',
+            'Mistura horror psicológico com elementos de circo',
+            'O protagonista é um artista de circo traumatizado',
+            'Envolve um culto religioso dedicado a uma santa sem braços',
+            'A mãe do protagonista é uma acrobata que perde os braços',
+            'Apresenta elementos do realismo mágico latino-americano',
+            'O filme é parcialmente baseado em um caso real',
+            'Contém cenas de ritual religioso e violência surreal',
+            'O protagonista age como os "braços" de sua mãe',
+            'Considerado um clássico do cinema cult mexicano'
+        ],
+        alternatives: ['Santa Sangre']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Ergo Proxy',
+        clues: [
+            'Anime cyberpunk de 2006',
+            'Se passa em uma cidade-domo pós-apocalíptica',
+            'Envolve androides chamados "AutoReivs"',
+            'A protagonista é uma investigadora chamada Re-l Mayer',
+            'Explora temas filosóficos complexos',
+            'Contém referências a filósofos como Descartes e Lacan',
+            'O design dos personagens é feito por Naoyuki Onda',
+            'A trama envolve seres misteriosos chamados "proxies"',
+            'Mistura elementos de ficção científica e filosofia existencial',
+            'Conhecido por sua narrativa densa e atmosfera sombria'
+        ],
+        alternatives: ['Ergo Proxy']
+    },
+    {
+        type: 'OBJETO',
+        icon: 'fas fa-cube',
+        answer: 'Necronomicon',
+        clues: [
+            'Livro fictício criado por H.P. Lovecraft',
+            'Supostamente escrito pelo "árabe louco" Abdul Alhazred',
+            'Contém conhecimentos sobre entidades cósmicas antigas',
+            'Frequentemente referenciado em histórias de horror cósmico',
+            'Seu nome significa "imagem da lei dos mortos"',
+            'Aparece em vários contos do Ciclo de Cthulhu',
+            'Sua leitura pode causar insanidade nos personagens',
+            'Inspirou diversos livros e filmes de terror',
+            'É um grimório que contém feitiços e rituais proibidos',
+            'Mistura elementos de horror cósmico e ocultismo'
+        ],
+        alternatives: ['Necronomicon', 'Al Azif']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Tetsuo: O Homem de Ferro',
+        clues: [
+            'Filme japonês cyberpunk de 1989',
+            'Dirigido por Shinya Tsukamoto',
+            'Filmado em preto e branco',
+            'Um salaryman se transforma gradativamente em metal',
+            'Fortemente influenciado pelo body horror',
+            'Mistura stop-motion com live action',
+            'Usa efeitos especiais práticos',
+            'Tem uma estética industrial e claustrofóbica',
+            'Ganhou vários prêmios em festivais de cinema fantástico',
+            'Considerado um dos filmes mais extremos do cinema japonês'
+        ],
+        alternatives: ['Tetsuo: The Iron Man']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Serial Experiments Lain',
+        clues: [
+            'Anime cyberpunk de 1998',
+            'Explora temas de realidade virtual e identidade',
+            'A protagonista é uma estudante chamada Lain',
+            'Aborda a relação entre humanos e tecnologia',
+            'A Wired é uma versão avançada da internet',
+            'Tem um visual experimental e atmosfera perturbadora',
+            'Influenciou várias obras de ficção científica',
+            'A narrativa é complexa e não-linear',
+            'Mistura elementos de horror psicológico',
+            'Conhecida por sua abertura com a música "Duvet"'
+        ],
+        alternatives: ['Lain', 'Serial Experiments Lain']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'El Topo',
+        clues: [
+            'Filme de western surrealista de 1970',
+            'Dirigido por Alejandro Jodorowsky',
+            'Considerado o primeiro filme "midnight movie"',
+            'Mistura western com simbolismo religioso',
+            'O diretor é também o protagonista',
+            'John Lennon ajudou a financiar o filme',
+            'Influenciou o movimento cinema de meia-noite',
+            'Repleto de simbolismo esotérico',
+            'O título significa "A Toupeira" em espanhol',
+            'Combina violência com misticismo'
+        ],
+        alternatives: ['The Mole']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Texhnolyze',
+        clues: [
+            'Anime cyberpunk de 2003',
+            'Criado pelo estúdio Madhouse',
+            'Se passa em uma cidade subterrânea chamada Lux',
+            'Aborda temas de transhumanismo',
+            'Conhecido por seu ritmo lento e atmosfera sombria',
+            'O primeiro episódio tem quase nenhum diálogo',
+            'Envolve membros artificiais chamados texhnolyze',
+            'O protagonista perde seus membros em uma luta',
+            'Dirigido por Hiroshi Hamasaki',
+            'Tem um final notoriamente niilista'
+        ],
+        alternatives: ['Texhnolyze']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Begotten',
+        clues: [
+            'Filme experimental de terror de 1989',
+            'Dirigido por E. Elias Merhige',
+            'Filmado em preto e branco com alto contraste e granulação',
+            'Não contém diálogos',
+            'Apresenta uma narrativa alegórica sobre criação e destruição',
+            'Envolve figuras como "Deus se Matando" e "Mãe Terra"',
+            'Conhecido por suas imagens perturbadoras e surreais',
+            'O processo de pós-produção para alcançar o visual levou meses',
+            'Considerado um filme de arte extremo',
+            'Influenciou artistas como Marilyn Manson'
+        ],
+        alternatives: ['Begotten']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Kenneth Anger',
+        clues: [
+            'Cineasta experimental americano nascido em 1927',
+            'Conhecido por seus curtas-metragens surreais e homoeróticos',
+            'Autor do livro "Hollywood Babylon"',
+            'Seus filmes frequentemente exploram temas de ocultismo e paganismo',
+            'Trabalhou com música de artistas como Mick Jagger e Jimmy Page',
+            'Filmes notáveis incluem "Scorpio Rising" e "Lucifer Rising"',
+            'Considerado uma figura pioneira do cinema underground',
+            'Seu trabalho influenciou diretores como David Lynch e Martin Scorsese',
+            'Utiliza simbolismo e imagens ritualísticas',
+            'Muitos de seus filmes não têm diálogo tradicional'
+        ],
+        alternatives: ['Kenneth Anglemyer']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Fando y Lis',
+        clues: [
+            'Filme mexicano de 1968 dirigido por Alejandro Jodorowsky',
+            'Baseado em uma peça de Fernando Arrabal',
+            'Causou um escândalo em sua estreia no Festival de Acapulco',
+            'A trama segue um casal em busca da cidade mítica de Tar',
+            'Filmado em preto e branco com um estilo surreal e chocante',
+            'Aborda temas de sadomasoquismo, amor e busca espiritual',
+            'Foi banido no México por um período',
+            'Considerado um precursor dos "midnight movies"',
+            'A personagem Lis é paraplégica',
+            'O filme tem uma atmosfera onírica e perturbadora'
+        ],
+        alternatives: ['Fando and Lis']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Jamón Jamón',
+        clues: [
+            'Filme espanhol de 1992 dirigido por Bigas Luna',
+            'Lançou as carreiras de Penélope Cruz e Javier Bardem',
+            'Uma comédia dramática com elementos surreais e eróticos',
+            'A história envolve um triângulo amoroso e uma fábrica de cuecas',
+            'O presunto (jamón) é um símbolo recorrente no filme',
+            'Explora temas de paixão, masculinidade e cultura espanhola',
+            'Penélope Cruz interpreta Silvia, uma jovem grávida',
+            'Javier Bardem interpreta Raúl, um aspirante a toureiro e modelo de cuecas',
+            'A mãe do namorado de Silvia contrata Raúl para seduzi-la',
+            'Conhecido por suas cenas visualmente marcantes e sensuais'
+        ],
+        alternatives: ['Jamón, Jamón']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'A Página Escarlate',
+        clues: [
+            'Filme de anime de 1986 dirigido por Mamoru Oshii',
+            'Título original "Tenshi no Tamago" (O Ovo do Anjo)',
+            'Colaboração com o artista Yoshitaka Amano',
+            'Conhecido por sua atmosfera sombria, simbolismo e narrativa enigmática',
+            'A história se passa em um mundo gótico e desolado',
+            'Uma jovem garota protege um grande ovo',
+            'Um soldado questiona o propósito da caça a sombras de peixes gigantes',
+            'Explora temas de fé, perda e a natureza da realidade',
+            'Visualmente deslumbrante, com pouquíssimo diálogo',
+            'Considerado uma obra de arte da animação, mas de difícil interpretação'
+        ],
+        alternatives: ['Tenshi no Tamago', "Angel's Egg"]
     }
 ];

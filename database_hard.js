@@ -178,5 +178,168 @@ const databaseHard = [
             'A narrativa ocorre em diferentes linhas temporais que se entrelaçam'
         ],
         alternatives: ['True Detective']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Rashomon',
+        clues: [
+            'Filme japonês de 1950 dirigido por Akira Kurosawa',
+            'A narrativa apresenta diferentes versões do mesmo crime',
+            'Se passa no Japão feudal durante uma época de crise',
+            'Toshiro Mifune interpreta um dos personagens principais',
+            'O título se refere a um antigo portão de Kyoto',
+            'Introduziu o conceito de narrativas múltiplas no cinema',
+            'Ganhou o Leão de Ouro no Festival de Veneza',
+            'A história é contada através de quatro testemunhos diferentes',
+            'Explora temas como verdade, percepção e natureza humana',
+            'Influenciou profundamente o cinema mundial'
+        ],
+        alternatives: ['Rashomon', 'Rashômon']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Federico Fellini',
+        clues: [
+            'Diretor de cinema italiano (1920-1993)',
+            'Conhecido por seu estilo visual surreal e fantástico',
+            'Dirigiu "8½", um filme sobre fazer filmes',
+            'Vencedor de quatro Oscar de Melhor Filme Estrangeiro',
+            'O termo "felliniano" foi criado para descrever seu estilo',
+            'Começou sua carreira durante o Neorrealismo italiano',
+            'Casado com a atriz Giulietta Masina',
+            'Dirigiu "La Dolce Vida" e "A Estrada da Vida"',
+            'Trabalhou frequentemente com o compositor Nino Rota',
+            'Conhecido por misturar realidade e fantasia em seus filmes'
+        ],
+        alternatives: ['Fellini']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'O Espelho',
+        clues: [
+            'Filme soviético de 1975 dirigido por Andrei Tarkovsky',
+            'Estrutura narrativa não-linear e autobiográfica',
+            'Mistura memórias de infância com eventos históricos',
+            'Usa três atrizes diferentes para representar a mesma personagem',
+            'Incorpora filmagens documentais da Segunda Guerra Mundial',
+            'A mãe do diretor é uma figura central na narrativa',
+            'Conhecido por suas longas tomadas contemplativas',
+            'Explora temas de memória, sonhos e nostalgia',
+            'O título original em russo é "Zerkalo"',
+            'Considerado um dos filmes mais pessoais de Tarkovsky'
+        ],
+        alternatives: ['Zerkalo', 'The Mirror']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Yasujirō Ozu',
+        clues: [
+            'Diretor japonês conhecido por seu estilo minimalista',
+            'Famoso por filmes sobre família e mudança social',
+            '"Era uma Vez em Tóquio" é sua obra mais conhecida',
+            'Conhecido por posicionar a câmera baixa e estática',
+            'Seus filmes raramente têm movimentos de câmera',
+            'Frequentemente trabalhou com os atores Chishū Ryū e Setsuko Hara',
+            'Especialista em dramas familiares (shomin-geki)',
+            'Ativo principalmente entre 1927 e 1962',
+            'Desenvolveu um estilo visual único e reconhecível',
+            'Muitos de seus filmes exploram o conceito de "mono no aware"'
+        ],
+        alternatives: ['Ozu Yasujirō', 'Yasujiro Ozu']
+    },
+    {
+        type: 'SÉRIE',
+        icon: 'fas fa-tv',
+        answer: 'Dekalog',
+        clues: [
+            'Série polonesa de 10 episódios dirigida por Krzysztof Kieślowski',
+            'Cada episódio é baseado em um dos Dez Mandamentos',
+            'Se passa em um conjunto habitacional em Varsóvia',
+            'Produzida originalmente para a televisão polonesa',
+            'Lançada em 1989',
+            'Dois episódios foram expandidos em longas-metragens',
+            'Mistura drama psicológico com questões morais',
+            'Cada história é independente mas compartilha o mesmo cenário',
+            'Stanley Kubrick a considerava uma das melhores obras para TV',
+            'Explora dilemas éticos da vida moderna'
+        ],
+        alternatives: ['Decálogo', 'The Decalogue']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'A Trilogia das Cores',
+        clues: [
+            'Três filmes dirigidos por Krzysztof Kieślowski',
+            'Cada filme representa uma cor da bandeira francesa',
+            'Azul, Branco e Vermelho são os títulos',
+            'Representam Liberdade, Igualdade e Fraternidade',
+            'Juliette Binoche estrela o primeiro filme',
+            'Julie Delpy aparece no terceiro filme',
+            'Produção franco-polonesa dos anos 90',
+            'Cada filme explora temas filosóficos diferentes',
+            'Ganhou vários prêmios em festivais internacionais',
+            'O compositor Zbigniew Preisner fez as trilhas sonoras'
+        ],
+        alternatives: ['Three Colors Trilogy', 'Trois Couleurs']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Werner Herzog',
+        clues: [
+            'Diretor alemão do Novo Cinema Alemão',
+            'Conhecido por documentários e filmes de ficção',
+            'Trabalhou frequentemente com Klaus Kinski',
+            'Dirigiu "Aguirre, a Cólera dos Deuses"',
+            'Seu documentário "Grizzly Man" é muito aclamado',
+            'Famoso por filmar em locações extremas',
+            'Dirigiu "Fitzcarraldo" na Amazônia',
+            'Conhecido por seu estilo único de narração',
+            'Explora temas de obsessão e natureza',
+            'Pioneiro do cinema alemão contemporâneo'
+        ],
+        alternatives: ['Werner Herzog Stipetić']
+    },
+    {
+        type: 'FILME',
+        icon: 'fas fa-film',
+        answer: 'Hiroshima Mon Amour',
+        clues: [
+            'Filme francês de 1959 dirigido por Alain Resnais',
+            'Roteiro de Marguerite Duras',
+            'Um romance entre uma francesa e um japonês',
+            'Se passa em Hiroshima após a bomba atômica',
+            'Mistura documentário com ficção',
+            'Conhecido por sua estrutura narrativa inovadora',
+            'Emmanuelle Riva é a protagonista',
+            'Explora temas de memória e trauma',
+            'Um marco do cinema da Nouvelle Vague',
+            'Usa flashbacks de forma revolucionária'
+        ],
+        alternatives: ['Hiroshima, Meu Amor']
+    },
+    {
+        type: 'PESSOA',
+        icon: 'fas fa-user',
+        answer: 'Maya Deren',
+        clues: [
+            'Pioneira do cinema experimental americano',
+            'Seu filme mais famoso é "Meshes of the Afternoon"',
+            'Trabalhou com cinema avant-garde nos anos 40',
+            'Influenciou o cinema experimental',
+            'Estudou e filmou rituais vodu no Haiti',
+            'Escreveu sobre teoria do cinema',
+            'Conhecida por seus filmes não-narrativos',
+            'Usava técnicas de edição inovadoras',
+            'Importante figura do cinema independente',
+            'Também era dançarina e coreógrafa'
+        ],
+        alternatives: ['Eleonora Derenkowska']
     }
+    // Adicionar mais 280 entradas similares aqui...
 ];
